@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chit/Assembly.hpp>
+
 #include <memory>
 #include <string_view>
 #include <vector>
@@ -17,7 +19,7 @@ namespace chit {
 		Node& operator=(const Node&) = delete;
 
 	public:
-		virtual void Generate(Context& context, BodyStream* stream) = 0;
+		virtual void Generate(Context& context, BodyStream* stream) const = 0;
 	};
 
 	class ExpressionNode : public Node {};
@@ -37,7 +39,7 @@ namespace chit {
 		std::vector<std::unique_ptr<StatementNode>> Statements;
 
 	public:
-		virtual void Generate(Context& context, BodyStream* stream) override;
+		virtual void Generate(Context& context, BodyStream* stream) const override;
 	};
 }
 
@@ -47,6 +49,6 @@ namespace chit {
 		std::vector<std::unique_ptr<StatementNode>> Statements;
 
 	public:
-		virtual void Generate(Context& context, BodyStream* stream) override;
+		virtual void Generate(Context& context, BodyStream* stream) const override;
 	};
 }

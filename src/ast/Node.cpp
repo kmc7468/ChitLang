@@ -3,7 +3,7 @@
 #include <chit/Generator.hpp>
 
 namespace chit {
-	void RootNode::Generate(Context& context, BodyStream* stream) {
+	void RootNode::Generate(Context& context, BodyStream* stream) const {
 		for (auto& statement : Statements) {
 			statement->Generate(context, stream);
 		}
@@ -17,7 +17,7 @@ namespace chit {
 }
 
 namespace chit {
-	void BlockNode::Generate(Context& context, BodyStream* stream) {
+	void BlockNode::Generate(Context& context, BodyStream* stream) const {
 		Context blockContext{
 			.Assembly = context.Assembly,
 			.Parent = &context,

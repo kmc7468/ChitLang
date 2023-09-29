@@ -6,7 +6,7 @@
 #include <iterator>
 
 namespace chit {
-	void FunctionDeclarationNode::Generate(Context& context, BodyStream*) {
+	void FunctionDeclarationNode::Generate(Context& context, BodyStream*) const {
 		auto& declaration = context.Symbols[Name];
 
 		if (!declaration) {
@@ -18,7 +18,7 @@ namespace chit {
 }
 
 namespace chit {
-	void FunctionDefinitionNode::Generate(Context& context, BodyStream*) {
+	void FunctionDefinitionNode::Generate(Context& context, BodyStream*) const {
 		Prototype->Generate(context, nullptr);
 
 		std::vector<std::u8string_view> parameterNames;

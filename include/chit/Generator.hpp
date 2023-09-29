@@ -12,6 +12,6 @@ namespace chit {
 		chit::Assembly& Assembly;
 		Context* Parent = nullptr;
 
-		std::unordered_map<std::u8string_view, Node*> Symbols;
+		std::unordered_map<std::u8string_view, const Node*> Symbols;
 	};
 }

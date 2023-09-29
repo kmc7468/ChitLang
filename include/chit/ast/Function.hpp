@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chit/Assembly.hpp>
 #include <chit/ast/Node.hpp>
 
 #include <memory>
@@ -15,7 +16,7 @@ namespace chit {
 		std::vector<std::pair<std::u8string_view, TypeNode*>> Parameters;
 
 	public:
-		virtual void Generate(Context& context, BodyStream* stream) override;
+		virtual void Generate(Context& context, BodyStream* stream) const override;
 	};
 }
 
@@ -26,6 +27,6 @@ namespace chit {
 		std::unique_ptr<BlockNode> Body;
 
 	public:
-		virtual void Generate(Context& context, BodyStream* stream) override;
+		virtual void Generate(Context& context, BodyStream* stream) const override;
 	};
 }
