@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cctype>
 #include <cstdint>
+#include <string_view>
 #include <unordered_map>
 #include <utf8.h>
 #include <utility>
@@ -142,7 +143,9 @@ namespace chit {
 					{ u8"void", TokenType::Void },
 					{ u8"int", TokenType::Int },
 				};
-				if (const auto keywordIter = keywords.find(token.Data); keywordIter != keywords.end()) {
+				if (const auto keywordIter = keywords.find(token.Data);
+					keywordIter != keywords.end()) {
+
 					token.Type = keywordIter->second;
 				}
 				
