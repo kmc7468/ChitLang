@@ -26,6 +26,7 @@ namespace chit {
 				std::unique_ptr<TypeNode>>> parameters) noexcept;
 
 	public:
+		virtual void DumpJson(BodyStream& stream) const override;
 		virtual void Generate(Context& context, BodyStream* stream) const override;
 	};
 
@@ -40,6 +41,7 @@ namespace chit {
 			std::unique_ptr<BlockNode> body) noexcept;
 
 	public:
+		virtual void DumpJson(BodyStream& stream) const override;
 		virtual void Generate(Context& context, BodyStream* stream) const override;
 	};
 }
@@ -58,6 +60,7 @@ namespace chit {
 			std::unique_ptr<ExpressionNode> initializer = nullptr) noexcept;
 
 	public:
+		virtual void DumpJson(BodyStream& stream) const override;
 		virtual void Generate(Context& context, BodyStream* stream) const override;
 	};
 }

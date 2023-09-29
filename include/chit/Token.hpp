@@ -10,23 +10,23 @@ namespace chit {
 
 		Identifier,
 
+		// Symbols
+		Assignment					= '=',
+
+		Semicolon					= ';',
+		Comma						= ',',
+
+		LeftParenthesis				= '(',
+		RightParenthesis			= ')',
+		LeftBrace					= '{',
+		RightBrace					= '}',
+
 		// Type Keywords
 		Void,
 		Int,
 
 		// Literals and Constants
 		DecInteger,
-
-		// Symbols
-		Assignment,							// =
-
-		Semicolon,							// ;
-		Comma,								// ,
-
-		LeftParenthesis,					// (
-		RightParenthesis,					// )
-		LeftBrace,							// {
-		RightBrace,							// }
 	};
 
 	struct Token final {

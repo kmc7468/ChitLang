@@ -34,16 +34,19 @@ namespace chit {
 		const Token* AcceptToken(TokenType tokenType) noexcept;
 
 		std::unique_ptr<ExpressionNode> ParseExpression();
+		std::unique_ptr<ExpressionNode> ParseAssignment();
+		std::unique_ptr<ExpressionNode> ParseSimpleExpression();
+
 		std::unique_ptr<StatementNode> ParseStatement();
-		std::unique_ptr<TypeNode> ParseType();
-
-		std::unique_ptr<BlockNode> ParseBlock();
-
 		std::unique_ptr<StatementNode> ParseFunctionDeclaration(
 			std::unique_ptr<TypeNode> returnTypeNode,
 			const Token* nameToken);
 		std::unique_ptr<StatementNode> ParseVariableDeclaration(
 			std::unique_ptr<TypeNode> typeNode,
 			const Token* nameToken);
+
+		std::unique_ptr<BlockNode> ParseBlock();
+
+		std::unique_ptr<TypeNode> ParseType();
 	};
 }

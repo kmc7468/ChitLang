@@ -14,6 +14,7 @@ namespace chit {
 		explicit IdentifierTypeNode(std::u8string_view name) noexcept;
 
 	public:
+		virtual void DumpJson(BodyStream& stream) const override;
 		virtual void Generate(Context& context, BodyStream* stream) const override;
 
 		virtual bool IsVoid() const noexcept override;

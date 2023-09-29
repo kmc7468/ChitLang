@@ -18,33 +18,41 @@ namespace chit {
 		Node& operator=(const Node&) = delete;
 
 	public:
+		virtual void DumpJson(BodyStream& stream) const = 0;
 		virtual void Generate(Context& context, BodyStream* stream) const = 0;
-	};
-
-	class ExpressionNode : public Node {};
-	class StatementNode : public Node {};
-
-	class TypeNode : public Node {
-	public:
-		virtual bool IsVoid() const noexcept;
 	};
 }
 
 namespace chit {
+	class ExpressionNode : public Node {
+	public:
+		virtual void GenerateAssignment(
+			Context& context,
+			BodyStream* stream,
+			const ExpressionNode* right) const;
+
+		virtual bool IsLValue() const noexcept = 0;
+		bool IsRValue() const noexcept;
+	};
+}
+
+namespace chit {
+	class StatementNode : public Node {};
+
 	class RootNode final : public StatementNode {
 	public:
 		std::vector<std::unique_ptr<StatementNode>> Statements;
 
 	public:
+		virtual void DumpJson(BodyStream& stream) const override;
 		virtual void Generate(Context& context, BodyStream* stream) const override;
 	};
-}
 
-namespace chit {
 	class EmptyStatementNode final : public StatementNode {
 	public:
+		virtual void DumpJson(BodyStream& stream) const override;
 		virtual void Generate(Context& context, BodyStream* stream) const override;
-	};;
+	};
 
 	class ExpressionStatementNode final : public StatementNode {
 	public:
@@ -54,6 +62,7 @@ namespace chit {
 		explicit ExpressionStatementNode(std::unique_ptr<ExpressionNode> expression) noexcept;
 
 	public:
+		virtual void DumpJson(BodyStream& stream) const override;
 		virtual void Generate(Context& context, BodyStream* stream) const override;
 	};
 
@@ -65,6 +74,14 @@ namespace chit {
 		explicit BlockNode(std::vector<std::unique_ptr<StatementNode>> statements) noexcept;
 
 	public:
+		virtual void DumpJson(BodyStream& stream) const override;
 		virtual void Generate(Context& context, BodyStream* stream) const override;
+	};
+}
+
+namespace chit {
+	class TypeNode : public Node {
+	public:
+		virtual bool IsVoid() const noexcept = 0;
 	};
 }
