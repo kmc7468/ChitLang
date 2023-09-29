@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace chit {
-	struct Context;
+	class Context;
 
 	class Node {
 	public:
@@ -41,6 +41,22 @@ namespace chit {
 }
 
 namespace chit {
+	class EmptyStatementNode final : public StatementNode {
+	public:
+		virtual void Generate(Context& context, BodyStream* stream) const override;
+	};;
+
+	class ExpressionStatementNode final : public StatementNode {
+	public:
+		std::unique_ptr<ExpressionNode> Expression;
+
+	public:
+		explicit ExpressionStatementNode(std::unique_ptr<ExpressionNode> expression) noexcept;
+
+	public:
+		virtual void Generate(Context& context, BodyStream* stream) const override;
+	};
+
 	class BlockNode : public StatementNode {
 	public:
 		std::vector<std::unique_ptr<StatementNode>> Statements;

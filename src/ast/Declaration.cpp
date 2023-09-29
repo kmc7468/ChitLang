@@ -1,4 +1,4 @@
-#include <chit/ast/Function.hpp>
+#include <chit/ast/Declaration.hpp>
 
 #include <chit/Generator.hpp>
 
@@ -19,7 +19,7 @@ namespace chit {
 	void FunctionDeclarationNode::Generate(Context& context, BodyStream*) const {
 		auto& declaration = context.Symbols[Name];
 
-		if (!declaration) {
+		if (declaration) {
 			// TODO
 		}
 
@@ -52,5 +52,31 @@ namespace chit {
 			std::move(parameterNames));
 
 		Body->Generate(context, &bodyStream);
+	}
+}
+
+namespace chit {
+	VariableDeclarationNode::VariableDeclarationNode(
+		std::unique_ptr<TypeNode> type,
+		std::u8string_view name,
+		std::unique_ptr<ExpressionNode> initializer) noexcept
+
+		: Type(std::move(type)), Name(std::move(name)),
+		Initializer(std::move(initializer)) {}
+
+	void VariableDeclarationNode::Generate(Context& context, BodyStream* stream) const {
+		auto& declaration = context.Symbols[Name];
+
+		if (declaration) {
+			// TODO
+		}
+
+		declaration = this;
+
+		if (!Initializer)
+			return;
+
+		Initializer->Generate(context, stream);
+		*stream << u8"store " << Name << u8'\n';
 	}
 }

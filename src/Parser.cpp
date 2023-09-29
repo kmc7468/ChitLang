@@ -1,9 +1,12 @@
 #include <chit/Parser.hpp>
 
-#include <chit/ast/Function.hpp>
+#include <chit/ast/Declaration.hpp>
+#include <chit/ast/Expression.hpp>
 #include <chit/ast/Type.hpp>
 
 #include <cassert>
+#include <cstdint>
+#include <string>
 #include <string_view>
 #include <utility>
 
@@ -41,9 +44,40 @@ namespace chit {
 
 #define ACCEPT(n, t) const auto n = AcceptToken(t); n
 
+	std::unique_ptr<ExpressionNode> Parser::ParseExpression() {
+		if (ACCEPT(nameToken, TokenType::Identifier)) {
+			return std::unique_ptr<ExpressionNode>(new IdentifierNode(
+				nameToken->Data
+			));
+		} else if (ACCEPT(integerToken, TokenType::DecInteger)) {
+			if (integerToken->Data.front() == u8'-') {
+				const auto value = std::stoull(std::string(
+					integerToken->Data.begin() + 1, integerToken->Data.end()));
+				if (value > 2147483648) { // 2^31
+					// TODO
+				} else {
+					return std::unique_ptr<ExpressionNode>(new IntConstantNode(
+						-static_cast<std::int32_t>(value)
+					));
+				}
+			} else {
+				const auto value = std::stoull(std::string(
+					integerToken->Data.begin(), integerToken->Data.end()));
+				if (value >= 2147483648) { // 2^31
+					// TODO
+				} else {
+					return std::unique_ptr<ExpressionNode>(new IntConstantNode(
+						static_cast<std::int32_t>(value)
+					));
+				}
+			}
+		} else {
+			return nullptr;
+		}
+	}
 	std::unique_ptr<StatementNode> Parser::ParseStatement() {
 		if (AcceptToken(TokenType::Semicolon)) {
-			// Ignore empty statement
+			return std::unique_ptr<StatementNode>(new EmptyStatementNode());
 		} else if (auto typeNode = ParseType(); typeNode) {
 			const auto nameToken = AcceptToken(TokenType::Identifier);
 			if (!nameToken) {
@@ -60,11 +94,15 @@ namespace chit {
 			if (AcceptToken(TokenType::LeftParenthesis)) {
 				return ParseFunctionDeclaration(std::move(typeNode), nameToken);
 			} else {
-				// TODO
+				return ParseVariableDeclaration(std::move(typeNode), nameToken);
 			}
+		} else if (auto exprNode = ParseExpression(); exprNode) {
+			return std::unique_ptr<StatementNode>(new ExpressionStatementNode(
+				std::move(exprNode)
+			));
+		} else {
+			return nullptr;
 		}
-
-		return nullptr;
 	}
 	std::unique_ptr<TypeNode> Parser::ParseType() {
 		if (ACCEPT(voidToken, TokenType::Void)) {
@@ -145,6 +183,52 @@ namespace chit {
 			m_Messages.push_back({
 				.Type = MessageType::Error,
 				.Data = u8"Expected ';'",
+				.Line = m_Current->Line,
+				.Column = m_Current->Column,
+			});
+
+			return nullptr;
+		}
+	}
+	std::unique_ptr<StatementNode> Parser::ParseVariableDeclaration(
+		std::unique_ptr<TypeNode> typeNode,
+		const Token* nameToken) {
+
+		if (AcceptToken(TokenType::Semicolon)) {
+			return std::unique_ptr<StatementNode>(new VariableDeclarationNode(
+				std::move(typeNode),
+				nameToken->Data
+			));
+		} else if (!AcceptToken(TokenType::Assignment)) {
+			m_Messages.push_back({
+				.Type = MessageType::Error,
+				.Data = u8"Expected ';'",
+				.Line = m_Current->Line,
+				.Column = m_Current->Column,
+			});
+
+			return nullptr;
+		} else if (auto exprNode = ParseExpression(); exprNode) {
+			if (!AcceptToken(TokenType::Semicolon)) {
+				m_Messages.push_back({
+					.Type = MessageType::Error,
+					.Data = u8"Expected ';'",
+					.Line = m_Current->Line,
+					.Column = m_Current->Column,
+				});
+
+				return nullptr;
+			}
+
+			return std::unique_ptr<StatementNode>(new VariableDeclarationNode(
+				std::move(typeNode),
+				nameToken->Data,
+				std::move(exprNode)
+			));
+		} else {
+			m_Messages.push_back({
+				.Type = MessageType::Error,
+				.Data = u8"Expected expression",
 				.Line = m_Current->Line,
 				.Column = m_Current->Column,
 			});

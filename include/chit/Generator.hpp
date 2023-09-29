@@ -8,10 +8,14 @@
 namespace chit {
 	class Node;
 
-	struct Context final {
+	class Context final {
+	public:
 		chit::Assembly& Assembly;
 		Context* Parent = nullptr;
 
 		std::unordered_map<std::u8string_view, const Node*> Symbols;
+
+	public:
+		const Node* FindSymbol(std::u8string_view name) const noexcept;
 	};
 }

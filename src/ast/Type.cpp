@@ -7,8 +7,6 @@ namespace chit {
 	void IdentifierTypeNode::Generate(Context&, BodyStream*) const {}
 
 	bool IdentifierTypeNode::IsVoid() const noexcept {
-		using namespace std::string_view_literals;
-
-		return Name == u8"void"sv;
+		return Name == u8"void";
 	}
 }

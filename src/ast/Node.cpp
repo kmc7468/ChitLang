@@ -19,6 +19,22 @@ namespace chit {
 }
 
 namespace chit {
+	void EmptyStatementNode::Generate(Context&, BodyStream*) const {}
+}
+
+namespace chit {
+	ExpressionStatementNode::ExpressionStatementNode(
+		std::unique_ptr<ExpressionNode> expression) noexcept
+
+		: Expression(std::move(expression)) {}
+
+	void ExpressionStatementNode::Generate(Context& context, BodyStream* stream) const {
+		Expression->Generate(context, stream);
+		*stream << u8"pop\n";
+	}
+}
+
+namespace chit {
 	BlockNode::BlockNode(std::vector<std::unique_ptr<StatementNode>> statements) noexcept
 		: Statements(std::move(statements)) {}
 
