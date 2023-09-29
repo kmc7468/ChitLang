@@ -12,7 +12,7 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Release)
 endif()
 
-include_directories("./include")
+include_directories("./include" "./ext/utfcpp/source")
 file(GLOB_RECURSE SOURCE_LIST "./src/*.cpp")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "./bin")
 
