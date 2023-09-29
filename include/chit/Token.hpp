@@ -30,7 +30,7 @@ namespace chit {
 
 	struct Token final {
 		TokenType Type;
-		std::string_view Data;
+		std::u8string_view Data;
 		std::size_t Line, Column;
 	};
 }
