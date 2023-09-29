@@ -3,7 +3,6 @@
 #include <chit/Assembly.hpp>
 
 #include <memory>
-#include <string_view>
 #include <vector>
 
 namespace chit {
@@ -24,12 +23,10 @@ namespace chit {
 
 	class ExpressionNode : public Node {};
 	class StatementNode : public Node {};
+
 	class TypeNode : public Node {
 	public:
-		std::u8string_view Name;
-
-	public:
-		bool IsVoid() const noexcept;
+		virtual bool IsVoid() const noexcept;
 	};
 }
 
@@ -47,6 +44,9 @@ namespace chit {
 	class BlockNode : public StatementNode {
 	public:
 		std::vector<std::unique_ptr<StatementNode>> Statements;
+
+	public:
+		explicit BlockNode(std::vector<std::unique_ptr<StatementNode>> statements) noexcept;
 
 	public:
 		virtual void Generate(Context& context, BodyStream* stream) const override;

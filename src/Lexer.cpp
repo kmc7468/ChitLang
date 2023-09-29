@@ -109,6 +109,7 @@ namespace chit {
 		CASE(U'=', Assignment);
 
 		CASE(U';', Semicolon);
+		CASE(U',', Comma);
 
 		CASE(U'(', LeftParenthesis);
 		CASE(U')', RightParenthesis);

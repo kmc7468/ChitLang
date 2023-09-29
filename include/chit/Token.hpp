@@ -21,6 +21,7 @@ namespace chit {
 		Assignment,							// =
 
 		Semicolon,							// ;
+		Comma,								// ,
 
 		LeftParenthesis,					// (
 		RightParenthesis,					// )

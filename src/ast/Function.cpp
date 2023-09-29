@@ -6,6 +6,16 @@
 #include <iterator>
 
 namespace chit {
+	FunctionDeclarationNode::FunctionDeclarationNode(
+		std::unique_ptr<TypeNode> returnType,
+		std::u8string_view name,
+		std::vector<std::pair<
+			std::u8string_view,
+			std::unique_ptr<TypeNode>>> parameters) noexcept
+
+		: ReturnType(std::move(returnType)), Name(name),
+		Parameters(std::move(parameters)) {}
+
 	void FunctionDeclarationNode::Generate(Context& context, BodyStream*) const {
 		auto& declaration = context.Symbols[Name];
 
@@ -18,6 +28,12 @@ namespace chit {
 }
 
 namespace chit {
+	FunctionDefinitionNode::FunctionDefinitionNode(
+		std::unique_ptr<FunctionDeclarationNode> prototype,
+		std::unique_ptr<BlockNode> body) noexcept
+
+		: Prototype(std::move(prototype)), Body(std::move(body)) {}
+
 	void FunctionDefinitionNode::Generate(Context& context, BodyStream*) const {
 		Prototype->Generate(context, nullptr);
 
