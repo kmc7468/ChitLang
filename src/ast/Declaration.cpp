@@ -88,6 +88,8 @@ namespace chit {
 			std::move(parameterNames));
 
 		Body->Generate(context, &bodyStream);
+
+		bodyStream << u8"ret\n";
 	}
 }
 

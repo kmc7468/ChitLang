@@ -88,6 +88,7 @@ namespace chit {
 	void BlockNode::Generate(Context& context, BodyStream* stream) const {
 		Context blockContext{
 			.Assembly = context.Assembly,
+			.Messages = context.Messages,
 			.Parent = &context,
 		};
 
