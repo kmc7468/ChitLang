@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chit/Assembly.hpp>
+#include <chit/util/Json.hpp>
 
 #include <memory>
 #include <string_view>
@@ -17,7 +18,7 @@ namespace chit {
 		Type& operator=(const Type&) = delete;
 
 	public:
-		virtual void DumpJson(BodyStream& stream) const = 0;
+		virtual JsonValue DumpJson() const = 0;
 
 		virtual bool IsEqual(
 			const std::shared_ptr<Type>& other) const noexcept;
@@ -40,7 +41,7 @@ namespace chit {
 		explicit BuiltinType(std::u8string_view name) noexcept;
 
 	public:
-		virtual void DumpJson(BodyStream& stream) const override;
+		virtual JsonValue DumpJson() const override;
 
 		virtual bool IsVoid() const noexcept override;
 	};
@@ -58,7 +59,7 @@ namespace chit {
 			std::vector<TypePtr> parameterTypes) noexcept;
 
 	public:
-		virtual void DumpJson(BodyStream& stream) const override;
+		virtual JsonValue DumpJson() const override;
 
 		virtual bool IsEqual(const TypePtr& other) const noexcept override;
 	};;

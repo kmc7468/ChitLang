@@ -6,4 +6,9 @@ namespace chit {
 
 		return { temp.begin(), temp.end() };
 	}
+	std::u8string ToUtf8String(std::int64_t integer) {
+		const auto temp = std::to_string(integer);
+
+		return { temp.begin(), temp.end() };
+	}
 }

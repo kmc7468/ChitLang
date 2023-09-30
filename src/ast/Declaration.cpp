@@ -1,5 +1,6 @@
 #include <chit/ast/Declaration.hpp>
 
+#include <chit/Assembly.hpp>
 #include <chit/Generator.hpp>
 #include <chit/Parser.hpp>
 
@@ -22,30 +23,22 @@ namespace chit {
 		assert(!Name.empty());
 	}
 
-	void FunctionDeclarationNode::DumpJson(BodyStream& stream) const {
-		stream << u8"{\"class\":\"FunctionDeclarationNode\",\"returnType\":";
+	JsonValue FunctionDeclarationNode::DumpJson() const {
+		JsonArray parameters;
 
-		ReturnType->DumpJson(stream);
-
-		stream << u8",\"name\":\"" << Name << u8"\",\"parameters\":[";
-
-		bool isFirst = true;
-
-		for (const auto& [name, type] : Parameters) {
-			if (!isFirst) {
-				stream << u8',';
-			} else {
-				isFirst = false;
-			}
-
-			stream << u8"{\"name\":\"" << name << u8"\",\"type\":";
-
-			type->DumpJson(stream);
-
-			stream << u8'}';
+		for (const auto& [name, value] : Parameters) {
+			parameters.AddElement(JsonObject().
+				SetField(u8"name", std::u8string(name)).
+				SetField(u8"type", value->DumpJson()).
+				Build());
 		}
 
-		stream << u8"]}";
+		return JsonObject().
+			SetField(u8"class", u8"FunctionDeclarationNode").
+			SetField(u8"returnType", ReturnType->DumpJson()).
+			SetField(u8"name", std::u8string(Name)).
+			SetField(u8"parameters", parameters.Build()).
+			Build();
 	}
 	void FunctionDeclarationNode::Analyze(ParserContext& context) const {
 		ReturnType->Analyze(context);
@@ -82,16 +75,12 @@ namespace chit {
 		assert(Body);
 	}
 
-	void FunctionDefinitionNode::DumpJson(BodyStream& stream) const {
-		stream << u8"{\"class\":\"FunctionDefinitionNode\",\"prototype\":";
-
-		Prototype->DumpJson(stream);
-
-		stream << u8",\"body\":";
-
-		Body->DumpJson(stream);
-
-		stream << u8'}';
+	JsonValue FunctionDefinitionNode::DumpJson() const {
+		return JsonObject().
+			SetField(u8"class", u8"FunctionDefinitionNode").
+			SetField(u8"prototype", Prototype->DumpJson()).
+			SetField(u8"body", Body->DumpJson()).
+			Build();
 	}
 	void FunctionDefinitionNode::Analyze(ParserContext& context) const {
 		Prototype->Analyze(context);
@@ -148,19 +137,13 @@ namespace chit {
 		assert(!Name.empty());
 	}
 
-	void VariableDeclarationNode::DumpJson(BodyStream& stream) const {
-		stream << u8"{\"class\":\"VariableDeclarationNode\",\"type\":";
-		Type->DumpJson(stream);
-
-		stream << u8",\"name\":\"" << Name << u8"\",\"initializer\":";
-
-		if (Initializer) {
-			Initializer->DumpJson(stream);
-		} else {
-			stream << u8"null";
-		}
-
-		stream << u8'}';
+	JsonValue VariableDeclarationNode::DumpJson() const {
+		return JsonObject().
+			SetField(u8"class", u8"VariableDeclarationNode").
+			SetField(u8"type", Type->DumpJson()).
+			SetField(u8"name", std::u8string(Name)).
+			SetField(u8"initializer", Initializer ? Initializer->DumpJson() : JsonNull()).
+			Build();
 	}
 	void VariableDeclarationNode::Analyze(ParserContext& context) const {
 		Type->Analyze(context);

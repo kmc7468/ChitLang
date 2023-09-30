@@ -7,28 +7,19 @@
 #include <utility>
 
 namespace chit {
-	void TypeNode::DumpJson(BodyStream& stream) const {
-		stream << u8"\"type\":";
-
-		if (Type) {
-			Type->DumpJson(stream);
-		} else {
-			stream << u8"null";
-		}
+	JsonValue TypeNode::DumpJson() const {
+		return JsonObject().
+			SetField(u8"type", Type ? Type->DumpJson() : JsonNull()).
+			Build();
 	}
 }
 
 namespace chit {
-	void ExpressionNode::DumpJson(BodyStream& stream) const {
-		stream << u8"\"type\":";
-
-		if (Type) {
-			Type->DumpJson(stream);
-		} else {
-			stream << u8"null";
-		}
-
-		stream << u8",\"isLValue\":" << (IsLValue ? u8"true" : u8"false");
+	JsonValue ExpressionNode::DumpJson() const {
+		return JsonObject().
+			SetField(u8"type", Type ? Type->DumpJson() : JsonNull()).
+			SetField(u8"isLValue", IsLValue).
+			Build();
 	}
 	void ExpressionNode::GenerateAssignment(GeneratorContext&) const {
 		assert(false);
@@ -39,22 +30,17 @@ namespace chit {
 }
 
 namespace chit {
-	void RootNode::DumpJson(BodyStream& stream) const {
-		stream << u8"{\"class\":\"RootNode\",\"statements\":[";
-
-		bool isFirst = true;
+	JsonValue RootNode::DumpJson() const {
+		JsonArray statements;
 
 		for (const auto& statement : Statements) {
-			if (!isFirst) {
-				stream << u8',';
-			} else {
-				isFirst = false;
-			}
-
-			statement->DumpJson(stream);
+			statements.AddElement(statement->DumpJson());
 		}
 
-		stream << u8"]}";
+		return JsonObject().
+			SetField(u8"class", u8"RootNode").
+			SetField(u8"statements", statements.Build()).
+			Build();
 	}
 	void RootNode::Analyze(ParserContext& context) const {
 		for (auto& statement : Statements) {
@@ -69,8 +55,10 @@ namespace chit {
 }
 
 namespace chit {
-	void EmptyStatementNode::DumpJson(BodyStream& stream) const {
-		stream << u8"{\"class\":\"EmptyStatementNode\"}";
+	JsonValue EmptyStatementNode::DumpJson() const {
+		return JsonObject().
+			SetField(u8"class", u8"EmptyStatementNode").
+			Build();
 	}
 	void EmptyStatementNode::Analyze(ParserContext&) const {}
 	void EmptyStatementNode::Generate(GeneratorContext&) const {}
@@ -85,12 +73,11 @@ namespace chit {
 		assert(Expression);
 	}
 
-	void ExpressionStatementNode::DumpJson(BodyStream& stream) const {
-		stream << u8"{\"class\":\"ExpressionStatementNode\",\"expression\":";
-
-		Expression->DumpJson(stream);
-
-		stream << u8'}';
+	JsonValue ExpressionStatementNode::DumpJson() const {
+		return JsonObject().
+			SetField(u8"class", u8"ExpressionStatementNode").
+			SetField(u8"expression", Expression->DumpJson()).
+			Build();
 	}
 	void ExpressionStatementNode::Analyze(ParserContext& context) const {
 		Expression->Analyze(context);
@@ -108,22 +95,17 @@ namespace chit {
 	BlockNode::BlockNode(std::vector<std::unique_ptr<StatementNode>> statements) noexcept
 		: Statements(std::move(statements)) {}
 
-	void BlockNode::DumpJson(BodyStream& stream) const {
-		stream << u8"{\"class\":\"BlockNode\",\"statements\":[";
-
-		bool isFirst = true;
+	JsonValue BlockNode::DumpJson() const {
+		JsonArray statements;
 
 		for (const auto& statement : Statements) {
-			if (!isFirst) {
-				stream << u8',';
-			} else {
-				isFirst = false;
-			}
-
-			statement->DumpJson(stream);
+			statements.AddElement(statement->DumpJson());
 		}
 
-		stream << u8"]}";
+		return JsonObject().
+			SetField(u8"class", u8"BlockNode").
+			SetField(u8"statements", statements.Build()).
+			Build();
 	}
 	void BlockNode::Analyze(chit::ParserContext& context) const {
 		ParserContext = std::unique_ptr<chit::ParserContext>(new chit::ParserContext{

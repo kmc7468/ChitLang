@@ -11,12 +11,12 @@ namespace chit {
 		assert(!name.empty());
 	}
 
-	void IdentifierTypeNode::DumpJson(BodyStream& stream) const {
-		stream << u8"{\"class\":\"IdentifierTypeNode\",\"name\":\"" << Name << u8"\",";
-
-		TypeNode::DumpJson(stream);
-
-		stream << u8"}";
+	JsonValue IdentifierTypeNode::DumpJson() const {
+		return JsonObject().
+			SetField(u8"class", u8"IdentifierTypeNode").
+			SetField(u8"name", std::u8string(Name)).
+			Merge(TypeNode::DumpJson()).
+			Build();
 	}
 	void IdentifierTypeNode::Analyze(ParserContext&) const {
 		if (Name == u8"void") {

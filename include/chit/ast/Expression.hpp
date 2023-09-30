@@ -1,9 +1,9 @@
 #pragma once
 
-#include <chit/Assembly.hpp>
 #include <chit/Symbol.hpp>
 #include <chit/Token.hpp>
 #include <chit/ast/Node.hpp>
+#include <chit/util/Json.hpp>
 
 #include <cstdint>
 #include <string_view>
@@ -19,7 +19,7 @@ namespace chit {
 		explicit IdentifierNode(std::u8string_view name) noexcept;
 
 	public:
-		virtual void DumpJson(BodyStream& stream) const override;
+		virtual JsonValue DumpJson() const override;
 		virtual void Analyze(ParserContext& context) const override;
 		virtual void GenerateValue(GeneratorContext& context) const override;
 		virtual void GenerateAssignment(GeneratorContext& context) const override;
@@ -36,7 +36,7 @@ namespace chit {
 		explicit IntConstantNode(std::int32_t value) noexcept;
 
 	public:
-		virtual void DumpJson(BodyStream& stream) const override;
+		virtual JsonValue DumpJson() const override;
 		virtual void Analyze(ParserContext& context) const override;
 		virtual void GenerateValue(GeneratorContext& context) const override;
 	};
@@ -56,7 +56,7 @@ namespace chit {
 			std::unique_ptr<ExpressionNode> right) noexcept;
 
 	public:
-		virtual void DumpJson(BodyStream& stream) const override;
+		virtual JsonValue DumpJson() const override;
 		virtual void Analyze(ParserContext& context) const override;
 		virtual void GenerateValue(GeneratorContext& context) const override;
 		virtual void GenerateAssignment(GeneratorContext& context) const override;
@@ -75,7 +75,7 @@ namespace chit {
 			std::vector<std::unique_ptr<ExpressionNode>> arguments) noexcept;
 
 	public:
-		virtual void DumpJson(BodyStream& stream) const override;
+		virtual JsonValue DumpJson() const override;
 		virtual void Analyze(ParserContext& context) const override;
 		virtual void GenerateValue(GeneratorContext& context) const override;
 	};

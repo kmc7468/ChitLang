@@ -1,7 +1,7 @@
 #pragma once
 
-#include <chit/Assembly.hpp>
 #include <chit/ast/Node.hpp>
+#include <chit/util/Json.hpp>
 
 #include <memory>
 
@@ -14,7 +14,7 @@ namespace chit {
 		explicit ReturnNode(std::unique_ptr<ExpressionNode> expression) noexcept;
 
 	public:
-		virtual void DumpJson(BodyStream& stream) const override;
+		virtual JsonValue DumpJson() const override;
 		virtual void Analyze(ParserContext& context) const override;
 		virtual void Generate(GeneratorContext& context) const override;
 	};

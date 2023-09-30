@@ -12,12 +12,11 @@ namespace chit {
 		assert(Expression);
 	}
 
-	void ReturnNode::DumpJson(BodyStream& stream) const {
-		stream << u8"{\"class\":\"ReturnNode\",\"expression\":";
-
-		Expression->DumpJson(stream);
-
-		stream << u8'}';
+	JsonValue ReturnNode::DumpJson() const {
+		return JsonObject().
+			SetField(u8"class", u8"ReturnNode").
+			SetField(u8"expression", Expression->DumpJson()).
+			Build();
 	}
 	void ReturnNode::Analyze(ParserContext& context) const {
 		Expression->Analyze(context);

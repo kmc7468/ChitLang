@@ -1,8 +1,8 @@
 #pragma once
 
-#include <chit/Assembly.hpp>
 #include <chit/Symbol.hpp>
 #include <chit/ast/Node.hpp>
+#include <chit/util/Json.hpp>
 
 #include <memory>
 #include <string_view>
@@ -29,7 +29,7 @@ namespace chit {
 				std::unique_ptr<TypeNode>>> parameters) noexcept;
 
 	public:
-		virtual void DumpJson(BodyStream& stream) const override;
+		virtual JsonValue DumpJson() const override;
 		virtual void Analyze(ParserContext& context) const override;
 		virtual void Generate(GeneratorContext& context) const override;
 	};
@@ -45,7 +45,7 @@ namespace chit {
 			std::unique_ptr<BlockNode> body) noexcept;
 
 	public:
-		virtual void DumpJson(BodyStream& stream) const override;
+		virtual JsonValue DumpJson() const override;
 		virtual void Analyze(ParserContext& context) const override;
 		virtual void Generate(GeneratorContext& context) const override;
 	};
@@ -67,7 +67,7 @@ namespace chit {
 			std::unique_ptr<ExpressionNode> initializer = nullptr) noexcept;
 
 	public:
-		virtual void DumpJson(BodyStream& stream) const override;
+		virtual JsonValue DumpJson() const override;
 		virtual void Analyze(ParserContext& context) const override;
 		virtual void Generate(GeneratorContext& context) const override;
 	};

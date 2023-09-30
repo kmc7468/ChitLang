@@ -1,7 +1,7 @@
 #pragma once
 
-#include <chit/Assembly.hpp>
 #include <chit/Type.hpp>
+#include <chit/util/Json.hpp>
 
 #include <memory>
 #include <vector>
@@ -19,7 +19,7 @@ namespace chit {
 		Node& operator=(const Node&) = delete;
 
 	public:
-		virtual void DumpJson(BodyStream& stream) const = 0;
+		virtual JsonValue DumpJson() const = 0;
 		virtual void Analyze(ParserContext& context) const = 0;
 	};
 }
@@ -30,7 +30,7 @@ namespace chit {
 		mutable TypePtr Type;
 
 	public:
-		virtual void DumpJson(BodyStream& stream) const override;
+		virtual JsonValue DumpJson() const override;
 	};
 }
 
@@ -43,7 +43,7 @@ namespace chit {
 		mutable bool IsLValue = false;
 
 	public:
-		virtual void DumpJson(BodyStream& stream) const override;
+		virtual JsonValue DumpJson() const override;
 		virtual void GenerateValue(GeneratorContext& context) const = 0;
 		virtual void GenerateAssignment(GeneratorContext& context) const;
 		virtual void GenerateFunctionCall(GeneratorContext& context) const;
@@ -63,14 +63,14 @@ namespace chit {
 		std::vector<std::unique_ptr<StatementNode>> Statements;
 
 	public:
-		virtual void DumpJson(BodyStream& stream) const override;
+		virtual JsonValue DumpJson() const override;
 		virtual void Analyze(ParserContext& context) const override;
 		virtual void Generate(GeneratorContext& context) const override;
 	};
 
 	class EmptyStatementNode final : public StatementNode {
 	public:
-		virtual void DumpJson(BodyStream& stream) const override;
+		virtual JsonValue DumpJson() const override;
 		virtual void Analyze(ParserContext& context) const override;
 		virtual void Generate(GeneratorContext& context) const override;
 	};
@@ -83,7 +83,7 @@ namespace chit {
 		explicit ExpressionStatementNode(std::unique_ptr<ExpressionNode> expression) noexcept;
 
 	public:
-		virtual void DumpJson(BodyStream& stream) const override;
+		virtual JsonValue DumpJson() const override;
 		virtual void Analyze(ParserContext& context) const override;
 		virtual void Generate(GeneratorContext& context) const override;
 	};
@@ -98,7 +98,7 @@ namespace chit {
 		explicit BlockNode(std::vector<std::unique_ptr<StatementNode>> statements) noexcept;
 
 	public:
-		virtual void DumpJson(BodyStream& stream) const override;
+		virtual JsonValue DumpJson() const override;
 		virtual void Analyze(chit::ParserContext& context) const override;
 		virtual void Generate(GeneratorContext& context) const override;
 	};

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <string>
 #include <utility>
 
 namespace chit {
@@ -25,8 +26,11 @@ namespace chit {
 		assert(!Name.empty());
 	}
 
-	void BuiltinType::DumpJson(BodyStream& stream) const {
-		stream << u8"{\"class\":\"BuiltinType\",\"name\":\"" << Name << u8"\"}";
+	JsonValue BuiltinType::DumpJson() const {
+		return JsonObject().
+			SetField(u8"class", u8"BuiltinType").
+			SetField(u8"name", std::u8string(Name)).
+			Build();
 	}
 
 	bool BuiltinType::IsVoid() const noexcept {
@@ -45,26 +49,18 @@ namespace chit {
 		assert(ReturnType);
 	}
 
-	void FunctionType::DumpJson(BodyStream& stream) const {
-		stream << u8"{\"class\":\"FunctionType\",\"returnType\":";
-
-		ReturnType->DumpJson(stream);
-
-		stream << u8",\"parameterTypes\":[";
-
-		bool isFirst = true;
+	JsonValue FunctionType::DumpJson() const {
+		JsonArray parameterTypes;
 
 		for (const auto& paramType : ParameterTypes) {
-			if (!isFirst) {
-				stream << u8',';
-			} else {
-				isFirst = false;
-			}
-
-			paramType->DumpJson(stream);
+			parameterTypes.AddElement(paramType->DumpJson());
 		}
 
-		stream << u8"]}";
+		return JsonObject().
+			SetField(u8"class", u8"FunctionType").
+			SetField(u8"returnType", ReturnType->DumpJson()).
+			SetField(u8"parameterTypes", parameterTypes.Build()).
+			Build();
 	}
 
 	bool FunctionType::IsEqual(const TypePtr& other) const noexcept {

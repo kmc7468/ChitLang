@@ -16,12 +16,12 @@ namespace chit {
 		assert(!Name.empty());
 	}
 
-	void IdentifierNode::DumpJson(BodyStream& stream) const {
-		stream << u8"{\"class\":\"IdentifierNode\",\"name\":\"" << Name << u8"\",";
-
-		ExpressionNode::DumpJson(stream);
-
-		stream << u8'}';
+	JsonValue IdentifierNode::DumpJson() const {
+		return JsonObject().
+			SetField(u8"class", u8"IdentifierNode").
+			SetField(u8"name", std::u8string(Name)).
+			Merge(ExpressionNode::DumpJson()).
+			Build();
 	}
 	void IdentifierNode::Analyze(ParserContext& context) const {
 		if (const auto symbol = context.SymbolTable.FindSymbol(Name);
@@ -89,12 +89,12 @@ namespace chit {
 	IntConstantNode::IntConstantNode(std::int32_t value) noexcept
 		: Value(value) {}
 
-	void IntConstantNode::DumpJson(BodyStream& stream) const {
-		stream << u8"{\"class\":\"IntConstantNode\",\"value\":" << ToUtf8String(Value) << u8',';
-
-		ExpressionNode::DumpJson(stream);
-
-		stream << u8'}';
+	JsonValue IntConstantNode::DumpJson() const {
+		return JsonObject().
+			SetField(u8"class", u8"IntConstantNode").
+			SetField(u8"value", Value).
+			Merge(ExpressionNode::DumpJson()).
+			Build();
 	}
 	void IntConstantNode::Analyze(ParserContext&) const {
 		Type = BuiltinType::Int;
@@ -121,20 +121,14 @@ namespace chit {
 		assert(Right);
 	}
 
-	void BinaryOperatorNode::DumpJson(BodyStream& stream) const {
-		stream << u8"{\"class\":\"BinaryOperatorNode\",\"operator\":\"" << char8_t(Operator) << u8"\",\"left\":";
-
-		Left->DumpJson(stream);
-
-		stream << u8",\"right\":";
-
-		Right->DumpJson(stream);
-
-		stream << u8',';
-
-		ExpressionNode::DumpJson(stream);
-
-		stream << u8'}';
+	JsonValue BinaryOperatorNode::DumpJson() const {
+		return JsonObject().
+			SetField(u8"class", u8"BinaryOperatorNode").
+			SetField(u8"operator", std::u8string(1, char8_t(Operator))).
+			SetField(u8"left", Left->DumpJson()).
+			SetField(u8"right", Right->DumpJson()).
+			Merge(ExpressionNode::DumpJson()).
+			Build();
 	}
 	void BinaryOperatorNode::Analyze(ParserContext& context) const {
 		Left->Analyze(context);
@@ -204,30 +198,19 @@ namespace chit {
 		assert(Function);
 	}
 
-	void FunctionCallNode::DumpJson(BodyStream& stream) const {
-		stream << u8"{\"class\":\"FunctionCallNode\",\"function\":";
-
-		Function->DumpJson(stream);
-
-		stream << u8",\"arguments\":[";
-
-		bool isFirst = true;
+	JsonValue FunctionCallNode::DumpJson() const {
+		JsonArray arguments;
 
 		for (const auto& argument : Arguments) {
-			if (!isFirst) {
-				stream << u8',';
-			} else {
-				isFirst = false;
-			}
-
-			argument->DumpJson(stream);
+			arguments.AddElement(argument->DumpJson());
 		}
 
-		stream << u8"],";
-
-		ExpressionNode::DumpJson(stream);
-
-		stream << u8'}';
+		return JsonObject().
+			SetField(u8"class", u8"FunctionCallNode").
+			SetField(u8"function", Function->DumpJson()).
+			SetField(u8"arguments", arguments.Build()).
+			Merge(ExpressionNode::DumpJson()).
+			Build();
 	}
 	void FunctionCallNode::Analyze(ParserContext& context) const {
 		Function->Analyze(context);
