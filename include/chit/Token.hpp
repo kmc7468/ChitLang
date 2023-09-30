@@ -29,6 +29,9 @@ namespace chit {
 		// Type keywords
 		Void,
 		Int,
+		Long,
+		Signed,
+		Unsigned,
 
 		// Other keywords,
 		Return,

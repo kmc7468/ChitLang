@@ -20,8 +20,7 @@ namespace chit {
 	public:
 		virtual JsonValue DumpJson() const = 0;
 
-		virtual bool IsEqual(
-			const std::shared_ptr<Type>& other) const noexcept;
+		virtual bool IsEqual(const std::shared_ptr<Type>& other) const noexcept;
 		virtual bool IsVoid() const noexcept;
 	};
 
@@ -33,6 +32,11 @@ namespace chit {
 	public:
 		static const std::shared_ptr<BuiltinType> Void;
 		static const std::shared_ptr<BuiltinType> Int;
+		static const std::shared_ptr<BuiltinType> UnsignedInt;
+		static const std::shared_ptr<BuiltinType> LongInt;
+		static const std::shared_ptr<BuiltinType> UnsignedLongInt;
+		static const std::shared_ptr<BuiltinType> LongLongInt;
+		static const std::shared_ptr<BuiltinType> UnsignedLongLongInt;
 
 	public:
 		std::u8string_view Name;
@@ -44,6 +48,7 @@ namespace chit {
 		virtual JsonValue DumpJson() const override;
 
 		virtual bool IsVoid() const noexcept override;
+		bool IsUnsigned() const noexcept;
 	};
 }
 

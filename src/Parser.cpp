@@ -59,8 +59,31 @@ namespace chit {
 	std::unique_ptr<TypeNode> Parser::ParseType() {
 		if (ACCEPT(voidToken, TokenType::Void)) {
 			return std::unique_ptr<TypeNode>(new IdentifierTypeNode(voidToken->Data));
-		} else if (ACCEPT(intToken, TokenType::Int)) {
-			return std::unique_ptr<TypeNode>(new IdentifierTypeNode(intToken->Data));
+		} else {
+			return ParseBuiltinType();
+		}
+	}
+	std::unique_ptr<TypeNode> Parser::ParseBuiltinType() {
+		std::vector<std::u8string_view> names;
+
+		while (true) {
+			switch (m_Current->Type) {
+			case TokenType::Int:
+			case TokenType::Long:
+			case TokenType::Signed:
+			case TokenType::Unsigned:
+				names.push_back((m_Current++)->Data);
+
+				break;
+
+			default:
+				goto generateNode;
+			}
+		}
+
+	generateNode:
+		if (!names.empty()) {
+			return std::unique_ptr<TypeNode>(new IdentifierTypeNode(std::move(names)));
 		} else {
 			return nullptr;
 		}

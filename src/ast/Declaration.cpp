@@ -147,7 +147,10 @@ namespace chit {
 	}
 	void VariableDeclarationNode::Analyze(ParserContext& context) const {
 		Type->Analyze(context);
-		Initializer->Analyze(context);
+
+		if (Initializer) {
+			Initializer->Analyze(context);
+		}
 
 		Symbol = IsVariableSymbol(context.SymbolTable.CreateVariableSymbol(
 			Name,

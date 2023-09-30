@@ -6,7 +6,7 @@
 #include <utility>
 
 namespace chit {
-	bool Type::IsEqual(const TypePtr& other) const noexcept {
+	bool Type::IsEqual(const std::shared_ptr<Type>& other) const noexcept {
 		return this == other.get();
 	}
 	bool Type::IsVoid() const noexcept {
@@ -19,6 +19,16 @@ namespace chit {
 		std::make_shared<BuiltinType>(u8"void");
 	const std::shared_ptr<BuiltinType> BuiltinType::Int =
 		std::make_shared<BuiltinType>(u8"int");
+	const std::shared_ptr<BuiltinType> BuiltinType::UnsignedInt =
+		std::make_shared<BuiltinType>(u8"unsigned int");
+	const std::shared_ptr<BuiltinType> BuiltinType::LongInt =
+		std::make_shared<BuiltinType>(u8"long int");
+	const std::shared_ptr<BuiltinType> BuiltinType::UnsignedLongInt =
+		std::make_shared<BuiltinType>(u8"unsigned long int");
+	const std::shared_ptr<BuiltinType> BuiltinType::LongLongInt =
+		std::make_shared<BuiltinType>(u8"long long int");
+	const std::shared_ptr<BuiltinType> BuiltinType::UnsignedLongLongInt =
+		std::make_shared<BuiltinType>(u8"unsigned long long int");
 
 	BuiltinType::BuiltinType(std::u8string_view name) noexcept
 		: Name(name) {
@@ -35,6 +45,9 @@ namespace chit {
 
 	bool BuiltinType::IsVoid() const noexcept {
 		return Name == u8"void";
+	}
+	bool BuiltinType::IsUnsigned() const noexcept {
+		return Name.front() == u8'u';
 	}
 }
 

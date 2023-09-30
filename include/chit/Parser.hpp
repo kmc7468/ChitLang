@@ -45,6 +45,7 @@ namespace chit {
 		const Token& PrevToken() const noexcept;
 
 		std::unique_ptr<TypeNode> ParseType();
+		std::unique_ptr<TypeNode> ParseBuiltinType();
 
 		std::unique_ptr<ExpressionNode> ParseExpression();
 		std::unique_ptr<ExpressionNode> ParseAssignment();				// =
