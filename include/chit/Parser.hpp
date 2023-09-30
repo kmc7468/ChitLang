@@ -42,12 +42,17 @@ namespace chit {
 
 	private:
 		const Token* AcceptToken(TokenType tokenType) noexcept;
+		const Token& PrevToken() const noexcept;
 
 		std::unique_ptr<TypeNode> ParseType();
 
 		std::unique_ptr<ExpressionNode> ParseExpression();
-		std::unique_ptr<ExpressionNode> ParseAssignment();
-		std::unique_ptr<ExpressionNode> ParseFunctionCall();
+		std::unique_ptr<ExpressionNode> ParseAssignment();				// =
+		std::unique_ptr<ExpressionNode> ParseAddition(					// + -
+			std::unique_ptr<ExpressionNode> leftNode = nullptr);
+		std::unique_ptr<ExpressionNode> ParseMultiplication(			// * / %
+			std::unique_ptr<ExpressionNode> leftNode = nullptr);
+		std::unique_ptr<ExpressionNode> ParseFunctionCall();			// ()
 		std::unique_ptr<ExpressionNode> ParseSimpleExpression();
 
 		std::unique_ptr<StatementNode> ParseStatement();

@@ -107,6 +107,11 @@ namespace chit {
 
 		switch (begin.Codepoint) {
 		CASE(U'=', Assignment);
+		CASE(U'+', Addition);
+		CASE(U'-', Subtraction);
+		CASE(U'*', Multiplication);
+		CASE(U'/', Division);
+		CASE(U'%', Modulo);
 
 		CASE(U';', Semicolon);
 		CASE(U',', Comma);

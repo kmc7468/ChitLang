@@ -12,6 +12,11 @@ namespace chit {
 
 		// Symbols
 		Assignment					= '=',
+		Addition					= '+',
+		Subtraction					= '-',
+		Multiplication				= '*',
+		Division					= '/',
+		Modulo 						= '%',
 
 		Semicolon					= ';',
 		Comma						= ',',

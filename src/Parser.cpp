@@ -50,6 +50,9 @@ namespace chit {
 		if (m_Current->Type == tokenType) return &*m_Current++;
 		else return nullptr;
 	}
+	const Token& Parser::PrevToken() const noexcept {
+		return *(m_Current - 1);
+	}
 
 #define ACCEPT(n, t) const auto n = AcceptToken(t); n
 
@@ -66,17 +69,74 @@ namespace chit {
 	std::unique_ptr<ExpressionNode> Parser::ParseExpression() {
 		return ParseAssignment();
 	}
-	std::unique_ptr<ExpressionNode> chit::Parser::ParseAssignment() {
-		auto leftNode = ParseFunctionCall();
+	std::unique_ptr<ExpressionNode> Parser::ParseAssignment() {
+		auto leftNode = ParseAddition();
 		if (!leftNode)
 			return nullptr;
-		
+
 		if (AcceptToken(TokenType::Assignment)) {
-			return std::unique_ptr<ExpressionNode>(new BinaryOperatorNode(
-				TokenType::Assignment,
-				std::move(leftNode),
-				ParseAssignment()
-			));
+			if (auto rightNode = ParseAssignment(); rightNode) {
+				return std::unique_ptr<ExpressionNode>(new BinaryOperatorNode(
+					TokenType::Assignment,
+					std::move(leftNode),
+					std::move(rightNode)
+				));
+			} else {
+				return nullptr;
+			}
+		} else {
+			return leftNode;
+		}
+	}
+	std::unique_ptr<ExpressionNode> Parser::ParseAddition(
+		std::unique_ptr<ExpressionNode> leftNode) {
+
+		if (!leftNode &&
+			!(leftNode = ParseMultiplication())) {
+
+			return nullptr;
+		}
+
+		if (AcceptToken(TokenType::Addition) || AcceptToken(TokenType::Subtraction)) {
+			const auto prevTokenType = PrevToken().Type;
+
+			if (auto rightNode = ParseMultiplication(); rightNode) {
+				return ParseAddition(std::unique_ptr<ExpressionNode>(new BinaryOperatorNode(
+					prevTokenType,
+					std::move(leftNode),
+					std::move(rightNode)
+				)));
+			} else {
+				return nullptr;
+			}
+		} else {
+			return leftNode;
+		}
+	}
+	std::unique_ptr<ExpressionNode> Parser::ParseMultiplication(
+		std::unique_ptr<ExpressionNode> leftNode) {
+
+		if (!leftNode &&
+			!(leftNode = ParseFunctionCall())) {
+
+			return nullptr;
+		}
+
+		if (AcceptToken(TokenType::Multiplication)		||
+			AcceptToken(TokenType::Division)			||
+			AcceptToken(TokenType::Modulo)) {
+
+			const auto prevTokenType = PrevToken().Type;
+
+			if (auto rightNode = ParseFunctionCall(); rightNode) {
+				return ParseMultiplication(std::unique_ptr<ExpressionNode>(new BinaryOperatorNode(
+					prevTokenType,
+					std::move(leftNode),
+					std::move(rightNode)
+				)));
+			} else {
+				return nullptr;
+			}
 		} else {
 			return leftNode;
 		}

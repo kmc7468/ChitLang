@@ -116,7 +116,13 @@ namespace chit {
 
 		: Operator(operator_), Left(std::move(left)), Right(std::move(right)) {
 
-		assert(Operator == TokenType::Assignment);
+		assert(
+			Operator == TokenType::Assignment		||
+			Operator == TokenType::Addition			||
+			Operator == TokenType::Subtraction		||
+			Operator == TokenType::Multiplication	||
+			Operator == TokenType::Division			||
+			Operator == TokenType::Modulo);
 		assert(Left);
 		assert(Right);
 	}
@@ -145,6 +151,14 @@ namespace chit {
 			Type = Left->Type;
 			IsLValue = true;
 
+		case TokenType::Addition:
+		case TokenType::Subtraction:
+		case TokenType::Multiplication:
+		case TokenType::Division:
+		case TokenType::Modulo:
+			Type = Left->Type; // TODO
+			IsLValue = false;
+
 			break;
 		}
 	}
@@ -161,6 +175,43 @@ namespace chit {
 			}
 
 			Left->GenerateAssignment(context);
+
+			break;
+
+		case TokenType::Addition:
+		case TokenType::Subtraction:
+		case TokenType::Multiplication:
+		case TokenType::Division:
+		case TokenType::Modulo:
+			Left->GenerateValue(context);
+			Right->GenerateValue(context);
+
+			switch (Operator) {
+			case TokenType::Addition:
+				*context.Stream << u8"add\n";
+
+				break;
+
+			case TokenType::Subtraction:
+				*context.Stream << u8"sub\n";
+
+				break;
+
+			case TokenType::Multiplication:
+				*context.Stream << u8"imul\n"; // TODO
+
+				break;
+
+			case TokenType::Division:
+				*context.Stream << u8"idiv\n"; // TODO
+
+				break;
+
+			case TokenType::Modulo:
+				*context.Stream << u8"imod\n"; // TODO
+
+				break;
+			}
 
 			break;
 		}
