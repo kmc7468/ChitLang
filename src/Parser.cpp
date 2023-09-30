@@ -45,6 +45,16 @@ namespace chit {
 
 #define ACCEPT(n, t) const auto n = AcceptToken(t); n
 
+	std::unique_ptr<TypeNode> Parser::ParseType() {
+		if (ACCEPT(voidToken, TokenType::Void)) {
+			return std::unique_ptr<TypeNode>(new IdentifierTypeNode(voidToken->Data));
+		} else if (ACCEPT(intToken, TokenType::Int)) {
+			return std::unique_ptr<TypeNode>(new IdentifierTypeNode(intToken->Data));
+		} else {
+			return nullptr;
+		}
+	}
+
 	std::unique_ptr<ExpressionNode> Parser::ParseExpression() {
 		return ParseAssignment();
 	}
@@ -319,15 +329,5 @@ namespace chit {
 		}
 
 		return std::unique_ptr<BlockNode>(new BlockNode(std::move(statements)));
-	}
-
-	std::unique_ptr<TypeNode> Parser::ParseType() {
-		if (ACCEPT(voidToken, TokenType::Void)) {
-			return std::unique_ptr<TypeNode>(new IdentifierTypeNode(voidToken->Data));
-		} else if (ACCEPT(intToken, TokenType::Int)) {
-			return std::unique_ptr<TypeNode>(new IdentifierTypeNode(intToken->Data));
-		} else {
-			return nullptr;
-		}
 	}
 }

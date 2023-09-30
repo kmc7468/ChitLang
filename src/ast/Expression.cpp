@@ -69,6 +69,9 @@ namespace chit {
 	
 	}
 
+	const Node* IdentifierNode::GetType(Context& context) const noexcept {
+		return context.FindSymbol(Name);
+	}
 	bool IdentifierNode::IsLValue() const noexcept {
 		return true;
 	}
@@ -87,6 +90,9 @@ namespace chit {
 		*stream << u8"push " << ToUtf8String(Value) << u8'\n';
 	}
 
+	const Node* IntConstantNode::GetType(Context&) const noexcept {
+		return IntType;
+	}
 	bool IntConstantNode::IsLValue() const noexcept {
 		return false;
 	}
@@ -121,7 +127,7 @@ namespace chit {
 
 		switch (Operator) {
 		case TokenType::Assignment:
-			if (Left->IsRValue()) {
+			if (!Left->IsLValue()) {
 				// TODO
 			}
 
@@ -131,6 +137,15 @@ namespace chit {
 		}
 	}
 
+	const Node* BinaryOperatorNode::GetType(Context& context) const noexcept {
+		switch (Operator) {
+		case TokenType::Assignment:
+			return Left->GetType(context);
+
+		default:
+			return nullptr;
+		}
+	}
 	bool BinaryOperatorNode::IsLValue() const noexcept {
 		switch (Operator) {
 		case TokenType::Assignment:
@@ -187,6 +202,17 @@ namespace chit {
 		Function->GenerateFunctionCall(context, stream);
 	}
 
+	const Node* FunctionCallNode::GetType(Context& context) const noexcept {
+		const auto funcType = Function->GetType(context);
+		
+		if (const auto funcDeclNode = dynamic_cast<const FunctionDeclarationNode*>(funcType);
+			funcDeclNode) {
+
+			return funcDeclNode->ReturnType.get();
+		} else {
+			// TODO
+		}
+	}
 	bool FunctionCallNode::IsLValue() const noexcept {
 		return false;
 	}

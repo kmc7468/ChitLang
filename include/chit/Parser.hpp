@@ -33,6 +33,8 @@ namespace chit {
 	private:
 		const Token* AcceptToken(TokenType tokenType) noexcept;
 
+		std::unique_ptr<TypeNode> ParseType();
+
 		std::unique_ptr<ExpressionNode> ParseExpression();
 		std::unique_ptr<ExpressionNode> ParseAssignment();
 		std::unique_ptr<ExpressionNode> ParseFunctionCall();
@@ -48,7 +50,5 @@ namespace chit {
 			const Token* nameToken);
 
 		std::unique_ptr<BlockNode> ParseBlock();
-
-		std::unique_ptr<TypeNode> ParseType();
 	};
 }

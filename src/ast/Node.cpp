@@ -1,9 +1,29 @@
 #include <chit/ast/Node.hpp>
 
 #include <chit/Generator.hpp>
+#include <chit/ast/Type.hpp>
 
 #include <cassert>
 #include <utility>
+
+namespace chit {
+	namespace {
+		static const IdentifierTypeNode s_VoidType(u8"void");
+		static const IdentifierTypeNode s_IntType(u8"int");
+	}
+
+	const TypeNode* const VoidType = &s_VoidType;
+	const TypeNode* const IntType = &s_IntType;
+}
+
+namespace chit {
+	void ExpressionNode::GenerateAssignment(Context&, BodyStream*, const ExpressionNode*) const {
+		assert(false);
+	}
+	void ExpressionNode::GenerateFunctionCall(Context&, BodyStream*) const {
+		assert(false);
+	}
+}
 
 namespace chit {
 	void RootNode::DumpJson(BodyStream& stream) const {
@@ -27,19 +47,6 @@ namespace chit {
 		for (auto& statement : Statements) {
 			statement->Generate(context, stream);
 		}
-	}
-}
-
-namespace chit {
-	void ExpressionNode::GenerateAssignment(Context&, BodyStream*, const ExpressionNode*) const {
-		assert(false);
-	}
-	void ExpressionNode::GenerateFunctionCall(Context&, BodyStream*) const {
-		assert(false);
-	}
-
-	bool ExpressionNode::IsRValue() const noexcept {
-		return !IsLValue();
 	}
 }
 

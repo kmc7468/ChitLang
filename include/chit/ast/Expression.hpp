@@ -23,6 +23,7 @@ namespace chit {
 			const ExpressionNode* right) const override;
 		virtual void GenerateFunctionCall(Context& context, BodyStream* stream) const override;
 
+		virtual const Node* GetType(Context& context) const noexcept override;
 		virtual bool IsLValue() const noexcept override;
 	};
 }
@@ -39,6 +40,7 @@ namespace chit {
 		virtual void DumpJson(BodyStream& stream) const override;
 		virtual void Generate(Context& context, BodyStream* stream) const override;
 
+		virtual const Node* GetType(Context& context) const noexcept override;
 		virtual bool IsLValue() const noexcept override;
 	};
 }
@@ -60,6 +62,7 @@ namespace chit {
 		virtual void DumpJson(BodyStream& stream) const override;
 		virtual void Generate(Context& context, BodyStream* stream) const override;
 
+		virtual const Node* GetType(Context& context) const noexcept override;
 		virtual bool IsLValue() const noexcept override;
 	};
 }
@@ -79,6 +82,7 @@ namespace chit {
 		virtual void DumpJson(BodyStream& stream) const override;
 		virtual void Generate(Context& context, BodyStream* stream) const override;
 
+		virtual const Node* GetType(Context& context) const noexcept override;
 		virtual bool IsLValue() const noexcept override;
 	};
 }

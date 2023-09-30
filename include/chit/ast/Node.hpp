@@ -24,6 +24,16 @@ namespace chit {
 }
 
 namespace chit {
+	class TypeNode : public Node {
+	public:
+		virtual bool IsVoid() const noexcept = 0;
+	};
+
+	extern const TypeNode* const VoidType;
+	extern const TypeNode* const IntType;
+}
+
+namespace chit {
 	class ExpressionNode : public Node {
 	public:
 		virtual void GenerateAssignment(
@@ -32,8 +42,8 @@ namespace chit {
 			const ExpressionNode* right) const;
 		virtual void GenerateFunctionCall(Context& context, BodyStream* stream) const;
 
+		virtual const Node* GetType(Context& context) const noexcept = 0;
 		virtual bool IsLValue() const noexcept = 0;
-		bool IsRValue() const noexcept;
 	};
 }
 
@@ -77,12 +87,5 @@ namespace chit {
 	public:
 		virtual void DumpJson(BodyStream& stream) const override;
 		virtual void Generate(Context& context, BodyStream* stream) const override;
-	};
-}
-
-namespace chit {
-	class TypeNode : public Node {
-	public:
-		virtual bool IsVoid() const noexcept = 0;
 	};
 }
