@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chit/Assembly.hpp>
+#include <chit/Symbol.hpp>
 #include <chit/Token.hpp>
 #include <chit/ast/Node.hpp>
 
@@ -11,20 +13,17 @@ namespace chit {
 	public:
 		std::u8string_view Name;
 
+		mutable chit::Symbol* Symbol = nullptr;
+
 	public:
 		explicit IdentifierNode(std::u8string_view name) noexcept;
 
 	public:
 		virtual void DumpJson(BodyStream& stream) const override;
-		virtual void Generate(Context& context, BodyStream* stream) const override;
-		virtual void GenerateAssignment(
-			Context& context,
-			BodyStream* stream,
-			const ExpressionNode* right) const override;
-		virtual void GenerateFunctionCall(Context& context, BodyStream* stream) const override;
-
-		virtual const Node* GetType(Context& context) const noexcept override;
-		virtual bool IsLValue() const noexcept override;
+		virtual void Analyze(ParserContext& context) const override;
+		virtual void GenerateValue(GeneratorContext& context) const override;
+		virtual void GenerateAssignment(GeneratorContext& context) const override;
+		virtual void GenerateFunctionCall(GeneratorContext& context) const override;
 	};
 }
 
@@ -38,10 +37,8 @@ namespace chit {
 
 	public:
 		virtual void DumpJson(BodyStream& stream) const override;
-		virtual void Generate(Context& context, BodyStream* stream) const override;
-
-		virtual const Node* GetType(Context& context) const noexcept override;
-		virtual bool IsLValue() const noexcept override;
+		virtual void Analyze(ParserContext& context) const override;
+		virtual void GenerateValue(GeneratorContext& context) const override;
 	};
 }
 
@@ -60,10 +57,9 @@ namespace chit {
 
 	public:
 		virtual void DumpJson(BodyStream& stream) const override;
-		virtual void Generate(Context& context, BodyStream* stream) const override;
-
-		virtual const Node* GetType(Context& context) const noexcept override;
-		virtual bool IsLValue() const noexcept override;
+		virtual void Analyze(ParserContext& context) const override;
+		virtual void GenerateValue(GeneratorContext& context) const override;
+		virtual void GenerateAssignment(GeneratorContext& context) const override;
 	};
 }
 
@@ -80,9 +76,7 @@ namespace chit {
 
 	public:
 		virtual void DumpJson(BodyStream& stream) const override;
-		virtual void Generate(Context& context, BodyStream* stream) const override;
-
-		virtual const Node* GetType(Context& context) const noexcept override;
-		virtual bool IsLValue() const noexcept override;
+		virtual void Analyze(ParserContext& context) const override;
+		virtual void GenerateValue(GeneratorContext& context) const override;
 	};
 }

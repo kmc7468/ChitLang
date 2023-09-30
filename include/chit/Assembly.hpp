@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 namespace chit {
-	using BodyStream = std::basic_stringstream<char8_t>;
+	using BodyStream = std::basic_ostringstream<char8_t>;
 
 	class Assembly final {
 	private:

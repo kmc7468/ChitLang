@@ -1,11 +1,13 @@
 #include <chit/ast/Expression.hpp>
 
 #include <chit/Generator.hpp>
-#include <chit/ast/Declaration.hpp>
+#include <chit/Parser.hpp>
+#include <chit/Type.hpp>
 #include <chit/util/String.hpp>
 
 #include <cassert>
 #include <ranges>
+#include <variant>
 
 namespace chit {
 	IdentifierNode::IdentifierNode(std::u8string_view name) noexcept
@@ -15,65 +17,71 @@ namespace chit {
 	}
 
 	void IdentifierNode::DumpJson(BodyStream& stream) const {
-		stream << u8"{\"class\":\"IdentifierNode\",\"name\":\"" << Name << u8"\"}";
+		stream << u8"{\"class\":\"IdentifierNode\",\"name\":\"" << Name << u8"\",";
+
+		ExpressionNode::DumpJson(stream);
+
+		stream << u8'}';
 	}
-	void IdentifierNode::Generate(Context& context, BodyStream* stream) const {
-		assert(stream);
+	void IdentifierNode::Analyze(ParserContext& context) const {
+		if (const auto symbol = context.SymbolTable.FindSymbol(Name);
+			symbol) {
 
-		if (const auto defNode = context.FindSymbol(Name); defNode) {
-			if (!dynamic_cast<const VariableDeclarationNode*>(defNode)) {
-				// TODO
+			if (const auto varSymbol = IsVariableSymbol(symbol->first);
+				varSymbol) {
+
+				Type = varSymbol->Type;
+				IsLValue = true;
+
+				Symbol = symbol->first;
+			} else if (const auto funcSymbol = IsFunctionSymbol(symbol->first);
+					   funcSymbol) {
+
+				Type = funcSymbol->Type;
+				IsLValue = true; // Function is considered as lvalue in ChitLang
+
+				Symbol = symbol->first;
 			}
-
-			*stream << u8"lea " << Name << u8'\n';
 		} else {
-			// TODO
+			// TODO: Error
 		}
 	}
-	void IdentifierNode::GenerateAssignment(
-		Context& context,
-		BodyStream* stream,
-		const ExpressionNode* right) const {
+	void IdentifierNode::GenerateValue(GeneratorContext& context) const {
+		assert(Type);
+		assert(context.Stream);
 
-		assert(stream);
-
-		if (const auto defNode = context.FindSymbol(Name); defNode) {
-			if (!dynamic_cast<const VariableDeclarationNode*>(defNode)) {
-				// TODO
-			}
-
-			right->Generate(context, stream);
-
-			if (right->IsLValue()) {
-				*stream << u8"tload\n";
-			}
-
-			*stream << u8"store " << Name << u8'\n'
-					<< u8"lea " << Name << u8'\n';
+		if (IsVariableSymbol(Symbol)) {
+			*context.Stream << u8"lea " << Name << u8'\n';
 		} else {
-			// TODO
+			// TODO: Error
 		}
 	}
-	void IdentifierNode::GenerateFunctionCall(Context& context, BodyStream* stream) const {
-		assert(stream);
+	void IdentifierNode::GenerateAssignment(GeneratorContext& context) const {
+		assert(Type);
+		assert(context.Stream);
 
-		if (const auto defNode = context.FindSymbol(Name); defNode) {
-			if (!dynamic_cast<const FunctionDeclarationNode*>(defNode)) {
-				// TODO
-			}
-
-			*stream << u8"call " << Name << u8'\n';
+		if (IsVariableSymbol(Symbol)) {
+			*context.Stream << u8"store " << Name << u8'\n' <<
+							   u8"lea " << Name << u8'\n';
 		} else {
-			// TODO
+			// TODO: Error
 		}
-	
 	}
+	void IdentifierNode::GenerateFunctionCall(GeneratorContext& context) const {
+		assert(Type);
+		assert(context.Stream);
 
-	const Node* IdentifierNode::GetType(Context& context) const noexcept {
-		return context.FindSymbol(Name);
-	}
-	bool IdentifierNode::IsLValue() const noexcept {
-		return true;
+		if (IsFunctionSymbol(Symbol)) {
+			*context.Stream << u8"call " << Name << u8'\n';
+
+			if (std::static_pointer_cast<FunctionType>(Type)->ReturnType ==
+				BuiltinType::Void) {
+
+				*context.Stream << u8"push 0\n"; // Temp value
+			}
+		} else {
+			// TODO: Error
+		}
 	}
 }
 
@@ -82,19 +90,21 @@ namespace chit {
 		: Value(value) {}
 
 	void IntConstantNode::DumpJson(BodyStream& stream) const {
-		stream << u8"{\"class\":\"IntConstantNode\",\"value\":" << ToUtf8String(Value) << u8'}';
-	}
-	void IntConstantNode::Generate(Context&, BodyStream* stream) const {
-		assert(stream);
+		stream << u8"{\"class\":\"IntConstantNode\",\"value\":" << ToUtf8String(Value) << u8',';
 
-		*stream << u8"push " << ToUtf8String(Value) << u8'\n';
-	}
+		ExpressionNode::DumpJson(stream);
 
-	const Node* IntConstantNode::GetType(Context&) const noexcept {
-		return IntType;
+		stream << u8'}';
 	}
-	bool IntConstantNode::IsLValue() const noexcept {
-		return false;
+	void IntConstantNode::Analyze(ParserContext&) const {
+		Type = BuiltinType::Int;
+		IsLValue = false;
+	}
+	void IntConstantNode::GenerateValue(GeneratorContext& context) const {
+		assert(Type);
+		assert(context.Stream);
+
+		*context.Stream << u8"push " << ToUtf8String(Value) << u8'\n';
 	}
 }
 
@@ -120,40 +130,67 @@ namespace chit {
 
 		Right->DumpJson(stream);
 
+		stream << u8',';
+
+		ExpressionNode::DumpJson(stream);
+
 		stream << u8'}';
 	}
-	void BinaryOperatorNode::Generate(Context& context, BodyStream* stream) const {
-		assert(stream);
+	void BinaryOperatorNode::Analyze(ParserContext& context) const {
+		Left->Analyze(context);
+		Right->Analyze(context);
+
+		// TODO: Type checking
 
 		switch (Operator) {
 		case TokenType::Assignment:
-			if (!Left->IsLValue()) {
-				// TODO
+			if (!Left->IsLValue) {
+				// TODO: Error
 			}
 
-			Left->GenerateAssignment(context, stream, Right.get());
+			Type = Left->Type;
+			IsLValue = true;
 
 			break;
 		}
 	}
+	void BinaryOperatorNode::GenerateValue(GeneratorContext& context) const {
+		assert(Type);
+		assert(context.Stream);
 
-	const Node* BinaryOperatorNode::GetType(Context& context) const noexcept {
 		switch (Operator) {
 		case TokenType::Assignment:
-			return Left->GetType(context);
+			Right->GenerateValue(context);
 
-		default:
-			return nullptr;
+			if (Right->IsLValue) {
+				*context.Stream << u8"tload\n";
+			}
+
+			Left->GenerateAssignment(context);
+
+			break;
 		}
 	}
-	bool BinaryOperatorNode::IsLValue() const noexcept {
-		switch (Operator) {
-		case TokenType::Assignment:
-			return true;
+	void BinaryOperatorNode::GenerateAssignment(GeneratorContext& context) const {
+		assert(Type);
+		assert(context.Stream);
 
-		default:
-			return false;
+		if (Operator != TokenType::Assignment) {
+			// TODO: Error
 		}
+
+		const auto rhsTempName = context.CreateTempIdentifier();
+		const auto lhsTempName = context.CreateTempIdentifier();
+
+		*context.Stream << u8"store " << rhsTempName << u8'\n';
+
+		GenerateValue(context);
+
+		*context.Stream << u8"store " << lhsTempName << u8'\n' <<
+						   u8"load " << rhsTempName << u8'\n' <<
+						   u8"load " << lhsTempName << u8'\n' <<
+						   u8"tstore\n" <<
+						   u8"load " << lhsTempName << u8'\n';
 	}
 }
 
@@ -186,34 +223,34 @@ namespace chit {
 			argument->DumpJson(stream);
 		}
 
-		stream << u8"]}";
+		stream << u8"],";
+
+		ExpressionNode::DumpJson(stream);
+
+		stream << u8'}';
 	}
-	void FunctionCallNode::Generate(Context& context, BodyStream* stream) const {
-		assert(stream);
+	void FunctionCallNode::Analyze(ParserContext& context) const {
+		Function->Analyze(context);
+
+		for (const auto& argument : Arguments) {
+			argument->Analyze(context);
+		}
+
+		Type = std::dynamic_pointer_cast<FunctionType>(Function->Type)->ReturnType;
+		IsLValue = false;
+	}
+	void FunctionCallNode::GenerateValue(GeneratorContext& context) const {
+		assert(Type);
+		assert(context.Stream);
 
 		for (const auto& argument : Arguments | std::views::reverse) {
-			argument->Generate(context, stream);
+			argument->GenerateValue(context);
 
-			if (argument->IsLValue()) {
-				*stream << u8"tload\n";
+			if (argument->IsLValue) {
+				*context.Stream << u8"tload\n";
 			}
 		}
 
-		Function->GenerateFunctionCall(context, stream);
-	}
-
-	const Node* FunctionCallNode::GetType(Context& context) const noexcept {
-		const auto funcType = Function->GetType(context);
-		
-		if (const auto funcDeclNode = dynamic_cast<const FunctionDeclarationNode*>(funcType);
-			funcDeclNode) {
-
-			return funcDeclNode->ReturnType.get();
-		} else {
-			// TODO
-		}
-	}
-	bool FunctionCallNode::IsLValue() const noexcept {
-		return false;
+		Function->GenerateFunctionCall(context);
 	}
 }

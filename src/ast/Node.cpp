@@ -1,26 +1,39 @@
 #include <chit/ast/Node.hpp>
 
 #include <chit/Generator.hpp>
-#include <chit/ast/Type.hpp>
+#include <chit/Parser.hpp>
 
 #include <cassert>
 #include <utility>
 
 namespace chit {
-	namespace {
-		static const IdentifierTypeNode s_VoidType(u8"void");
-		static const IdentifierTypeNode s_IntType(u8"int");
-	}
+	void TypeNode::DumpJson(BodyStream& stream) const {
+		stream << u8"\"type\":";
 
-	const TypeNode* const VoidType = &s_VoidType;
-	const TypeNode* const IntType = &s_IntType;
+		if (Type) {
+			Type->DumpJson(stream);
+		} else {
+			stream << u8"null";
+		}
+	}
 }
 
 namespace chit {
-	void ExpressionNode::GenerateAssignment(Context&, BodyStream*, const ExpressionNode*) const {
+	void ExpressionNode::DumpJson(BodyStream& stream) const {
+		stream << u8"\"type\":";
+
+		if (Type) {
+			Type->DumpJson(stream);
+		} else {
+			stream << u8"null";
+		}
+
+		stream << u8",\"isLValue\":" << (IsLValue ? u8"true" : u8"false");
+	}
+	void ExpressionNode::GenerateAssignment(GeneratorContext&) const {
 		assert(false);
 	}
-	void ExpressionNode::GenerateFunctionCall(Context&, BodyStream*) const {
+	void ExpressionNode::GenerateFunctionCall(GeneratorContext&) const {
 		assert(false);
 	}
 }
@@ -43,9 +56,14 @@ namespace chit {
 
 		stream << u8"]}";
 	}
-	void RootNode::Generate(Context& context, BodyStream* stream) const {
+	void RootNode::Analyze(ParserContext& context) const {
 		for (auto& statement : Statements) {
-			statement->Generate(context, stream);
+			statement->Analyze(context);
+		}
+	}
+	void RootNode::Generate(GeneratorContext& context) const {
+		for (auto& statement : Statements) {
+			statement->Generate(context);
 		}
 	}
 }
@@ -54,23 +72,35 @@ namespace chit {
 	void EmptyStatementNode::DumpJson(BodyStream& stream) const {
 		stream << u8"{\"class\":\"EmptyStatementNode\"}";
 	}
-	void EmptyStatementNode::Generate(Context&, BodyStream*) const {}
+	void EmptyStatementNode::Analyze(ParserContext&) const {}
+	void EmptyStatementNode::Generate(GeneratorContext&) const {}
 }
 
 namespace chit {
 	ExpressionStatementNode::ExpressionStatementNode(
 		std::unique_ptr<ExpressionNode> expression) noexcept
 
-		: Expression(std::move(expression)) {}
+		: Expression(std::move(expression)) {
+
+		assert(Expression);
+	}
 
 	void ExpressionStatementNode::DumpJson(BodyStream& stream) const {
 		stream << u8"{\"class\":\"ExpressionStatementNode\",\"expression\":";
+
 		Expression->DumpJson(stream);
+
 		stream << u8'}';
 	}
-	void ExpressionStatementNode::Generate(Context& context, BodyStream* stream) const {
-		Expression->Generate(context, stream);
-		*stream << u8"pop\n";
+	void ExpressionStatementNode::Analyze(ParserContext& context) const {
+		Expression->Analyze(context);
+	}
+	void ExpressionStatementNode::Generate(GeneratorContext& context) const {
+		assert(context.Stream);
+
+		Expression->GenerateValue(context);
+
+		*context.Stream << u8"pop\n";
 	}
 }
 
@@ -95,15 +125,28 @@ namespace chit {
 
 		stream << u8"]}";
 	}
-	void BlockNode::Generate(Context& context, BodyStream* stream) const {
-		Context blockContext{
-			.Assembly = context.Assembly,
+	void BlockNode::Analyze(chit::ParserContext& context) const {
+		ParserContext = std::unique_ptr<chit::ParserContext>(new chit::ParserContext{
 			.Messages = context.Messages,
+			.SymbolTable = SymbolTable(context.SymbolTable),
+		});
+
+		for (auto& statement : Statements) {
+			statement->Analyze(*ParserContext);
+		}
+	}
+	void BlockNode::Generate(GeneratorContext& context) const {
+		assert(ParserContext);
+
+		GeneratorContext blockContext{
 			.Parent = &context,
+			.Assembly = context.Assembly,
+			.Stream = context.Stream,
+			.Messages = context.Messages,
 		};
 
 		for (auto& statement : Statements) {
-			statement->Generate(blockContext, stream);
+			statement->Generate(blockContext);
 		}
 	}
 }

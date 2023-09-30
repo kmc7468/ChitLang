@@ -1,12 +1,13 @@
 #pragma once
 
 #include <chit/Assembly.hpp>
+#include <chit/Type.hpp>
 
 #include <memory>
 #include <vector>
 
 namespace chit {
-	class Context;
+	struct ParserContext;
 
 	class Node {
 	public:
@@ -19,36 +20,43 @@ namespace chit {
 
 	public:
 		virtual void DumpJson(BodyStream& stream) const = 0;
-		virtual void Generate(Context& context, BodyStream* stream) const = 0;
+		virtual void Analyze(ParserContext& context) const = 0;
 	};
 }
 
 namespace chit {
 	class TypeNode : public Node {
 	public:
-		virtual bool IsVoid() const noexcept = 0;
-	};
+		mutable TypePtr Type;
 
-	extern const TypeNode* const VoidType;
-	extern const TypeNode* const IntType;
+	public:
+		virtual void DumpJson(BodyStream& stream) const override;
+	};
 }
 
 namespace chit {
+	class GeneratorContext;
+
 	class ExpressionNode : public Node {
 	public:
-		virtual void GenerateAssignment(
-			Context& context,
-			BodyStream* stream,
-			const ExpressionNode* right) const;
-		virtual void GenerateFunctionCall(Context& context, BodyStream* stream) const;
+		mutable TypePtr Type;
+		mutable bool IsLValue = false;
 
-		virtual const Node* GetType(Context& context) const noexcept = 0;
-		virtual bool IsLValue() const noexcept = 0;
+	public:
+		virtual void DumpJson(BodyStream& stream) const override;
+		virtual void GenerateValue(GeneratorContext& context) const = 0;
+		virtual void GenerateAssignment(GeneratorContext& context) const;
+		virtual void GenerateFunctionCall(GeneratorContext& context) const;
 	};
 }
 
 namespace chit {
-	class StatementNode : public Node {};
+	class GeneratorContext;
+
+	class StatementNode : public Node {
+	public:
+		virtual void Generate(GeneratorContext& context) const = 0;
+	};
 
 	class RootNode final : public StatementNode {
 	public:
@@ -56,13 +64,15 @@ namespace chit {
 
 	public:
 		virtual void DumpJson(BodyStream& stream) const override;
-		virtual void Generate(Context& context, BodyStream* stream) const override;
+		virtual void Analyze(ParserContext& context) const override;
+		virtual void Generate(GeneratorContext& context) const override;
 	};
 
 	class EmptyStatementNode final : public StatementNode {
 	public:
 		virtual void DumpJson(BodyStream& stream) const override;
-		virtual void Generate(Context& context, BodyStream* stream) const override;
+		virtual void Analyze(ParserContext& context) const override;
+		virtual void Generate(GeneratorContext& context) const override;
 	};
 
 	class ExpressionStatementNode final : public StatementNode {
@@ -74,18 +84,22 @@ namespace chit {
 
 	public:
 		virtual void DumpJson(BodyStream& stream) const override;
-		virtual void Generate(Context& context, BodyStream* stream) const override;
+		virtual void Analyze(ParserContext& context) const override;
+		virtual void Generate(GeneratorContext& context) const override;
 	};
 
-	class BlockNode : public StatementNode {
+	class BlockNode final : public StatementNode {
 	public:
 		std::vector<std::unique_ptr<StatementNode>> Statements;
+
+		mutable std::unique_ptr<chit::ParserContext> ParserContext;
 
 	public:
 		explicit BlockNode(std::vector<std::unique_ptr<StatementNode>> statements) noexcept;
 
 	public:
 		virtual void DumpJson(BodyStream& stream) const override;
-		virtual void Generate(Context& context, BodyStream* stream) const override;
+		virtual void Analyze(chit::ParserContext& context) const override;
+		virtual void Generate(GeneratorContext& context) const override;
 	};
 }

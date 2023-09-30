@@ -15,8 +15,6 @@ namespace chit {
 
 	public:
 		virtual void DumpJson(BodyStream& stream) const override;
-		virtual void Generate(Context& context, BodyStream* stream) const override;
-
-		virtual bool IsVoid() const noexcept override;
+		virtual void Analyze(ParserContext& context) const override;
 	};
 }

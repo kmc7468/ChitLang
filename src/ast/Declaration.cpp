@@ -1,8 +1,10 @@
 #include <chit/ast/Declaration.hpp>
 
 #include <chit/Generator.hpp>
+#include <chit/Parser.hpp>
 
 #include <algorithm>
+#include <cassert>
 #include <iterator>
 
 namespace chit {
@@ -14,7 +16,11 @@ namespace chit {
 			std::unique_ptr<TypeNode>>> parameters) noexcept
 
 		: ReturnType(std::move(returnType)), Name(name),
-		Parameters(std::move(parameters)) {}
+		Parameters(std::move(parameters)) {
+
+		assert(ReturnType);
+		assert(!Name.empty());
+	}
 
 	void FunctionDeclarationNode::DumpJson(BodyStream& stream) const {
 		stream << u8"{\"class\":\"FunctionDeclarationNode\",\"returnType\":";
@@ -41,14 +47,27 @@ namespace chit {
 
 		stream << u8"]}";
 	}
-	void FunctionDeclarationNode::Generate(Context& context, BodyStream*) const {
-		auto& declaration = context.Symbols[Name];
+	void FunctionDeclarationNode::Analyze(ParserContext& context) const {
+		ReturnType->Analyze(context);
 
-		if (declaration) {
-			// TODO
+		std::vector<TypePtr> parameterTypes;
+
+		for (const auto& parameter : Parameters) {
+			parameter.second->Analyze(context);
+
+			parameterTypes.push_back(parameter.second->Type);
 		}
 
-		declaration = this;
+		Symbol = IsFunctionSymbol(context.SymbolTable.CreateFunctionSymbol(
+			Name,
+			ReturnType->Type,
+			std::move(parameterTypes)));
+		if (!Symbol) {
+			// TODO: Error or ignore
+		}
+	}
+	void FunctionDeclarationNode::Generate(GeneratorContext&) const {
+		assert(Symbol);
 	}
 }
 
@@ -57,7 +76,11 @@ namespace chit {
 		std::unique_ptr<FunctionDeclarationNode> prototype,
 		std::unique_ptr<BlockNode> body) noexcept
 
-		: Prototype(std::move(prototype)), Body(std::move(body)) {}
+		: Prototype(std::move(prototype)), Body(std::move(body)) {
+
+		assert(Prototype);
+		assert(Body);
+	}
 
 	void FunctionDefinitionNode::DumpJson(BodyStream& stream) const {
 		stream << u8"{\"class\":\"FunctionDefinitionNode\",\"prototype\":";
@@ -70,8 +93,16 @@ namespace chit {
 
 		stream << u8'}';
 	}
-	void FunctionDefinitionNode::Generate(Context& context, BodyStream*) const {
-		Prototype->Generate(context, nullptr);
+	void FunctionDefinitionNode::Analyze(ParserContext& context) const {
+		Prototype->Analyze(context);
+		Body->Analyze(context);
+
+		if (!context.SymbolTable.IsGlobal()) {
+			// TODO: Error
+		}
+	}
+	void FunctionDefinitionNode::Generate(chit::GeneratorContext& context) const {
+		Prototype->Generate(context);
 
 		std::vector<std::u8string_view> parameterNames;
 		std::transform(
@@ -84,10 +115,17 @@ namespace chit {
 
 		auto& bodyStream = context.Assembly.AddFunction(
 			Prototype->Name,
-			!Prototype->ReturnType->IsVoid(),
+			!Prototype->ReturnType->Type->IsVoid(),
 			std::move(parameterNames));
 
-		Body->Generate(context, &bodyStream);
+		GeneratorContext defContext{
+			.Parent = &context,
+			.Assembly = context.Assembly,
+			.Stream = &bodyStream,
+			.Messages = context.Messages,
+		};
+
+		Body->Generate(defContext);
 
 		if (Prototype->Name == u8"main") {
 			bodyStream << u8"push 0\n";
@@ -104,7 +142,11 @@ namespace chit {
 		std::unique_ptr<ExpressionNode> initializer) noexcept
 
 		: Type(std::move(type)), Name(std::move(name)),
-		Initializer(std::move(initializer)) {}
+		Initializer(std::move(initializer)) {
+
+		assert(Type);
+		assert(!Name.empty());
+	}
 
 	void VariableDeclarationNode::DumpJson(BodyStream& stream) const {
 		stream << u8"{\"class\":\"VariableDeclarationNode\",\"type\":";
@@ -120,19 +162,26 @@ namespace chit {
 
 		stream << u8'}';
 	}
-	void VariableDeclarationNode::Generate(Context& context, BodyStream* stream) const {
-		auto& declaration = context.Symbols[Name];
+	void VariableDeclarationNode::Analyze(ParserContext& context) const {
+		Type->Analyze(context);
+		Initializer->Analyze(context);
 
-		if (declaration) {
-			// TODO
+		Symbol = IsVariableSymbol(context.SymbolTable.CreateVariableSymbol(
+			Name,
+			Type->Type,
+			Initializer ? VariableState::Initalized : VariableState::Uninitialized));
+		if (!Symbol) {
+			// TODO: Error or ignore
 		}
+	}
+	void VariableDeclarationNode::Generate(GeneratorContext& context) const {
+		assert(Symbol);
+		assert(context.Stream);
 
-		declaration = this;
+		if (Initializer) {
+			Initializer->GenerateValue(context);
 
-		if (!Initializer)
-			return;
-
-		Initializer->Generate(context, stream);
-		*stream << u8"store " << Name << u8'\n';
+			*context.Stream << u8"store " << Name << u8'\n';
+		}
 	}
 }

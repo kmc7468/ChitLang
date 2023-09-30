@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chit/Message.hpp>
+#include <chit/Symbol.hpp>
 #include <chit/Token.hpp>
 #include <chit/ast/Node.hpp>
 
@@ -9,11 +10,20 @@
 #include <vector>
 
 namespace chit {
+	struct ParserContext final {
+		std::vector<Message>& Messages;
+
+		chit::SymbolTable SymbolTable;
+	};
+}
+
+namespace chit {
 	class Parser final {
 	private:
 		std::span<const Token> m_Tokens;
 		std::span<const Token>::iterator m_Current;
 
+		std::unique_ptr<ParserContext> m_RootContext;
 		std::unique_ptr<RootNode> m_RootNode;
 		std::vector<Message> m_Messages;
 

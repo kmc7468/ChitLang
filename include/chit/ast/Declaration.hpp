@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chit/Assembly.hpp>
+#include <chit/Symbol.hpp>
 #include <chit/ast/Node.hpp>
 
 #include <memory>
@@ -17,6 +18,8 @@ namespace chit {
 			std::u8string_view,
 			std::unique_ptr<TypeNode>>> Parameters;
 
+		mutable FunctionSymbol* Symbol = nullptr;
+
 	public:
 		FunctionDeclarationNode(
 			std::unique_ptr<TypeNode> returnType,
@@ -27,7 +30,8 @@ namespace chit {
 
 	public:
 		virtual void DumpJson(BodyStream& stream) const override;
-		virtual void Generate(Context& context, BodyStream* stream) const override;
+		virtual void Analyze(ParserContext& context) const override;
+		virtual void Generate(GeneratorContext& context) const override;
 	};
 
 	class FunctionDefinitionNode final : public StatementNode {
@@ -42,7 +46,8 @@ namespace chit {
 
 	public:
 		virtual void DumpJson(BodyStream& stream) const override;
-		virtual void Generate(Context& context, BodyStream* stream) const override;
+		virtual void Analyze(ParserContext& context) const override;
+		virtual void Generate(GeneratorContext& context) const override;
 	};
 }
 
@@ -53,6 +58,8 @@ namespace chit {
 		std::u8string_view Name;
 		std::unique_ptr<ExpressionNode> Initializer;
 
+		mutable VariableSymbol* Symbol = nullptr;
+
 	public:
 		VariableDeclarationNode(
 			std::unique_ptr<TypeNode> type,
@@ -61,6 +68,7 @@ namespace chit {
 
 	public:
 		virtual void DumpJson(BodyStream& stream) const override;
-		virtual void Generate(Context& context, BodyStream* stream) const override;
+		virtual void Analyze(ParserContext& context) const override;
+		virtual void Generate(GeneratorContext& context) const override;
 	};
 }

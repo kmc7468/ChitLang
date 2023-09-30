@@ -1,16 +1,33 @@
 #include <chit/Symbol.hpp>
 
 namespace chit {
-	SymbolTable::SymbolTable(SymbolTable* parent)
-		: m_Parent(parent) {}
+	VariableSymbol* IsVariableSymbol(Symbol* symbol) noexcept {
+		if (!symbol) return nullptr;
 
-	std::unique_ptr<SymbolTable> SymbolTable::CreateChildTable() {
-		return std::make_unique<SymbolTable>(this);
+		if (std::holds_alternative<VariableSymbol>(*symbol)) {
+			return &std::get<VariableSymbol>(*symbol);
+		} else {
+			return nullptr;
+		}
 	}
+	FunctionSymbol* IsFunctionSymbol(Symbol* symbol) noexcept {
+		if (!symbol) return nullptr;
+
+		if (std::holds_alternative<FunctionSymbol>(*symbol)) {
+			return &std::get<FunctionSymbol>(*symbol);
+		} else {
+			return nullptr;
+		}
+	}
+}
+
+namespace chit {
+	SymbolTable::SymbolTable(SymbolTable& parent)
+		: m_Parent(&parent) {}
 
 	Symbol* SymbolTable::CreateVariableSymbol(
 		std::u8string_view name,
-		std::shared_ptr<Type> type,
+		TypePtr type,
 		VariableState state) {
 
 		auto& symbol = m_Symbols[name];
@@ -24,14 +41,15 @@ namespace chit {
 	}
 	Symbol* SymbolTable::CreateFunctionSymbol(
 		std::u8string_view name,
-		std::shared_ptr<Type> returnType,
-		std::vector<std::shared_ptr<Type>> parameterTypes) {
+		TypePtr returnType,
+		std::vector<TypePtr> parameterTypes) {
 
 		auto& symbol = m_Symbols[name];
 
 		symbol = std::unique_ptr<Symbol>(new Symbol(FunctionSymbol{
-			.ReturnType = std::move(returnType),
-			.ParameterTypes = std::move(parameterTypes),
+			.Type = std::shared_ptr<FunctionType>(new FunctionType(
+				std::move(returnType),
+				std::move(parameterTypes))),
 		}));
 
 		return symbol.get();
@@ -49,5 +67,9 @@ namespace chit {
 		} else {
 			return std::nullopt;
 		}
+	}
+
+	bool SymbolTable::IsGlobal() const noexcept {
+		return m_Parent == nullptr;
 	}
 }

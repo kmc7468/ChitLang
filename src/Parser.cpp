@@ -1,5 +1,6 @@
 #include <chit/Parser.hpp>
 
+#include <chit/Generator.hpp>
 #include <chit/ast/Declaration.hpp>
 #include <chit/ast/Expression.hpp>
 #include <chit/ast/Statement.hpp>
@@ -19,6 +20,7 @@ namespace chit {
 
 	void Parser::Parse() {
 		assert(m_Current == m_Tokens.begin());
+		assert(m_RootContext == nullptr);
 		assert(m_RootNode == nullptr);
 
 		m_RootNode = std::make_unique<RootNode>();
@@ -30,6 +32,12 @@ namespace chit {
 				break;
 			}
 		}
+
+		m_RootContext = std::unique_ptr<ParserContext>(new ParserContext{
+			.Messages = m_Messages,
+		});
+
+		m_RootNode->Analyze(*m_RootContext);
 	}
 	const RootNode* Parser::GetRootNode() const noexcept {
 		return m_RootNode.get();

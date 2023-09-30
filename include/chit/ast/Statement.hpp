@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chit/Assembly.hpp>
 #include <chit/ast/Node.hpp>
 
 #include <memory>
@@ -14,6 +15,7 @@ namespace chit {
 
 	public:
 		virtual void DumpJson(BodyStream& stream) const override;
-		virtual void Generate(Context& context, BodyStream* stream) const override;
+		virtual void Analyze(ParserContext& context) const override;
+		virtual void Generate(GeneratorContext& context) const override;
 	};
 }

@@ -18,21 +18,25 @@ namespace chit {
 	};
 
 	struct VariableSymbol final {
-		std::shared_ptr<Type> Type;
+		TypePtr Type;
 		VariableState State = VariableState::Uninitialized;
 	};
 }
 
 namespace chit {
 	struct FunctionSymbol final {
-		std::shared_ptr<Type> ReturnType;
-		std::vector<std::shared_ptr<Type>> ParameterTypes;
+		std::shared_ptr<FunctionType> Type;
 	};
 }
 
 namespace chit {
 	using Symbol = std::variant<VariableSymbol, FunctionSymbol>;
 
+	VariableSymbol* IsVariableSymbol(Symbol* symbol) noexcept;
+	FunctionSymbol* IsFunctionSymbol(Symbol* symbol) noexcept;
+}
+
+namespace chit {
 	class SymbolTable final {
 	private:
 		SymbolTable* m_Parent = nullptr;
@@ -43,7 +47,7 @@ namespace chit {
 
 	public:
 		SymbolTable() = default;
-		explicit SymbolTable(SymbolTable* parent);
+		explicit SymbolTable(SymbolTable& parent);
 		SymbolTable(const SymbolTable&) = delete;
 		~SymbolTable() = default;
 
@@ -51,18 +55,18 @@ namespace chit {
 		SymbolTable& operator=(const SymbolTable&) = delete;
 
 	public:
-		std::unique_ptr<SymbolTable> CreateChildTable();
-
 		Symbol* CreateVariableSymbol(
 			std::u8string_view name,
-			std::shared_ptr<Type> type,
+			TypePtr type,
 			VariableState state);
 		Symbol* CreateFunctionSymbol(
 			std::u8string_view name,
-			std::shared_ptr<Type> returnType,
-			std::vector<std::shared_ptr<Type>> parameterTypes);
+			TypePtr returnType,
+			std::vector<TypePtr> parameterTypes);
 		std::optional<std::pair<
 			Symbol*,
 			const SymbolTable*>> FindSymbol(std::u8string_view name);
+
+		bool IsGlobal() const noexcept;
 	};
 }

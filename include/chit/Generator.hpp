@@ -6,22 +6,29 @@
 
 #include <optional>
 #include <span>
+#include <string>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace chit {
-	class Context final {
+	class GeneratorContext final {
 	public:
+		GeneratorContext* const Parent = nullptr;
+
 		chit::Assembly& Assembly;
+		BodyStream* const Stream = nullptr;
 		std::vector<Message>& Messages;
 
-		Context* Parent = nullptr;
-
-		std::unordered_map<std::u8string_view, const Node*> Symbols;
+		std::unordered_set<std::u8string> TempIdentifiers;
 
 	public:
-		const Node* FindSymbol(std::u8string_view name) const noexcept;
+		std::u8string_view CreateTempIdentifier();
+		void DeleteTempIdentifier(std::u8string_view identifier);
+
+	private:
+		bool HasTempIdentifier(const std::u8string& identifier);
 	};
 }
 
