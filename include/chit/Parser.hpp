@@ -35,9 +35,11 @@ namespace chit {
 
 		std::unique_ptr<ExpressionNode> ParseExpression();
 		std::unique_ptr<ExpressionNode> ParseAssignment();
+		std::unique_ptr<ExpressionNode> ParseFunctionCall();
 		std::unique_ptr<ExpressionNode> ParseSimpleExpression();
 
 		std::unique_ptr<StatementNode> ParseStatement();
+		std::unique_ptr<StatementNode> ParseReturn();
 		std::unique_ptr<StatementNode> ParseFunctionDeclaration(
 			std::unique_ptr<TypeNode> returnTypeNode,
 			const Token* nameToken);

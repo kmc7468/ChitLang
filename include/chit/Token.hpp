@@ -21,9 +21,12 @@ namespace chit {
 		LeftBrace					= '{',
 		RightBrace					= '}',
 
-		// Type Keywords
+		// Type keywords
 		Void,
 		Int,
+
+		// Other keywords,
+		Return,
 
 		// Literals and Constants
 		DecInteger,

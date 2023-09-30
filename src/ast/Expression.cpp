@@ -5,6 +5,7 @@
 #include <chit/util/String.hpp>
 
 #include <cassert>
+#include <ranges>
 
 namespace chit {
 	IdentifierNode::IdentifierNode(std::u8string_view name) noexcept
@@ -52,6 +53,20 @@ namespace chit {
 		} else {
 			// TODO
 		}
+	}
+	void IdentifierNode::GenerateFunctionCall(Context& context, BodyStream* stream) const {
+		assert(stream);
+
+		if (const auto defNode = context.FindSymbol(Name); defNode) {
+			if (!dynamic_cast<const FunctionDeclarationNode*>(defNode)) {
+				// TODO
+			}
+
+			*stream << u8"call " << Name << u8'\n';
+		} else {
+			// TODO
+		}
+	
 	}
 
 	bool IdentifierNode::IsLValue() const noexcept {
@@ -124,5 +139,55 @@ namespace chit {
 		default:
 			return false;
 		}
+	}
+}
+
+namespace chit {
+	FunctionCallNode::FunctionCallNode(
+		std::unique_ptr<ExpressionNode> function,
+		std::vector<std::unique_ptr<ExpressionNode>> arguments) noexcept
+
+		: Function(std::move(function)), Arguments(std::move(arguments)) {
+
+		assert(Function);
+	}
+
+	void FunctionCallNode::DumpJson(BodyStream& stream) const {
+		stream << u8"{\"class\":\"FunctionCallNode\",\"function\":";
+
+		Function->DumpJson(stream);
+
+		stream << u8",\"arguments\":[";
+
+		bool isFirst = true;
+
+		for (const auto& argument : Arguments) {
+			if (!isFirst) {
+				stream << u8',';
+			} else {
+				isFirst = false;
+			}
+
+			argument->DumpJson(stream);
+		}
+
+		stream << u8"]}";
+	}
+	void FunctionCallNode::Generate(Context& context, BodyStream* stream) const {
+		assert(stream);
+
+		for (const auto& argument : Arguments | std::views::reverse) {
+			argument->Generate(context, stream);
+
+			if (argument->IsLValue()) {
+				*stream << u8"tload\n";
+			}
+		}
+
+		Function->GenerateFunctionCall(context, stream);
+	}
+
+	bool FunctionCallNode::IsLValue() const noexcept {
+		return false;
 	}
 }

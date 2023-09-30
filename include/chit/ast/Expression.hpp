@@ -21,6 +21,7 @@ namespace chit {
 			Context& context,
 			BodyStream* stream,
 			const ExpressionNode* right) const override;
+		virtual void GenerateFunctionCall(Context& context, BodyStream* stream) const override;
 
 		virtual bool IsLValue() const noexcept override;
 	};
@@ -54,6 +55,25 @@ namespace chit {
 			TokenType operator_,
 			std::unique_ptr<ExpressionNode> left,
 			std::unique_ptr<ExpressionNode> right) noexcept;
+
+	public:
+		virtual void DumpJson(BodyStream& stream) const override;
+		virtual void Generate(Context& context, BodyStream* stream) const override;
+
+		virtual bool IsLValue() const noexcept override;
+	};
+}
+
+namespace chit {
+	class FunctionCallNode final : public ExpressionNode {
+	public:
+		std::unique_ptr<ExpressionNode> Function;
+		std::vector<std::unique_ptr<ExpressionNode>> Arguments;
+
+	public:
+		explicit FunctionCallNode(
+			std::unique_ptr<ExpressionNode> function,
+			std::vector<std::unique_ptr<ExpressionNode>> arguments) noexcept;
 
 	public:
 		virtual void DumpJson(BodyStream& stream) const override;

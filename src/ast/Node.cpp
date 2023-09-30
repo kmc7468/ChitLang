@@ -34,6 +34,9 @@ namespace chit {
 	void ExpressionNode::GenerateAssignment(Context&, BodyStream*, const ExpressionNode*) const {
 		assert(false);
 	}
+	void ExpressionNode::GenerateFunctionCall(Context&, BodyStream*) const {
+		assert(false);
+	}
 
 	bool ExpressionNode::IsRValue() const noexcept {
 		return !IsLValue();

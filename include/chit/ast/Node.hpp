@@ -30,6 +30,7 @@ namespace chit {
 			Context& context,
 			BodyStream* stream,
 			const ExpressionNode* right) const;
+		virtual void GenerateFunctionCall(Context& context, BodyStream* stream) const;
 
 		virtual bool IsLValue() const noexcept = 0;
 		bool IsRValue() const noexcept;
