@@ -1,6 +1,5 @@
 #include <chit/ast/Node.hpp>
 
-#include <chit/Generator.hpp>
 #include <chit/Parser.hpp>
 
 #include <cassert>
@@ -21,12 +20,6 @@ namespace chit {
 			SetField(u8"isLValue", IsLValue).
 			Build();
 	}
-	void ExpressionNode::GenerateAssignment(GeneratorContext&) const {
-		assert(false);
-	}
-	void ExpressionNode::GenerateFunctionCall(GeneratorContext&) const {
-		assert(false);
-	}
 }
 
 namespace chit {
@@ -42,16 +35,6 @@ namespace chit {
 			SetField(u8"statements", statements.Build()).
 			Build();
 	}
-	void RootNode::Analyze(ParserContext& context) const {
-		for (auto& statement : Statements) {
-			statement->Analyze(context);
-		}
-	}
-	void RootNode::Generate(GeneratorContext& context) const {
-		for (auto& statement : Statements) {
-			statement->Generate(context);
-		}
-	}
 }
 
 namespace chit {
@@ -60,8 +43,6 @@ namespace chit {
 			SetField(u8"class", u8"EmptyStatementNode").
 			Build();
 	}
-	void EmptyStatementNode::Analyze(ParserContext&) const {}
-	void EmptyStatementNode::Generate(GeneratorContext&) const {}
 }
 
 namespace chit {
@@ -78,16 +59,6 @@ namespace chit {
 			SetField(u8"class", u8"ExpressionStatementNode").
 			SetField(u8"expression", Expression->DumpJson()).
 			Build();
-	}
-	void ExpressionStatementNode::Analyze(ParserContext& context) const {
-		Expression->Analyze(context);
-	}
-	void ExpressionStatementNode::Generate(GeneratorContext& context) const {
-		assert(context.Stream);
-
-		Expression->GenerateValue(context);
-
-		*context.Stream << u8"pop\n";
 	}
 }
 
@@ -106,30 +77,5 @@ namespace chit {
 			SetField(u8"class", u8"BlockNode").
 			SetField(u8"statements", statements.Build()).
 			Build();
-	}
-	void BlockNode::Analyze(chit::ParserContext& context) const {
-		ParserContext = std::unique_ptr<chit::ParserContext>(new chit::ParserContext{
-			.Messages = context.Messages,
-			.SymbolTable = SymbolTable(context.SymbolTable),
-			.FunctionReturnType = context.FunctionReturnType,
-		});
-
-		for (auto& statement : Statements) {
-			statement->Analyze(*ParserContext);
-		}
-	}
-	void BlockNode::Generate(GeneratorContext& context) const {
-		assert(ParserContext);
-
-		GeneratorContext blockContext{
-			.Parent = &context,
-			.Assembly = context.Assembly,
-			.Stream = context.Stream,
-			.Messages = context.Messages,
-		};
-
-		for (auto& statement : Statements) {
-			statement->Generate(blockContext);
-		}
 	}
 }

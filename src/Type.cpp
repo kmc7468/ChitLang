@@ -179,4 +179,8 @@ namespace chit {
 			return false;
 		}
 	}
+
+	std::shared_ptr<FunctionType> IsFunctionType(const TypePtr& type) noexcept {
+		return std::dynamic_pointer_cast<FunctionType>(type);
+	}
 }

@@ -82,5 +82,7 @@ namespace chit {
 		virtual void GenerateConvert(GeneratorContext& context) const override;
 
 		virtual bool IsEqual(const TypePtr& other) const noexcept override;
-	};;
+	};
+
+	std::shared_ptr<FunctionType> IsFunctionType(const TypePtr& type) noexcept;
 }
