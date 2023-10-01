@@ -86,7 +86,9 @@ namespace chit {
 		const auto jumpLabelName = context.CreateTempIdentifier();
 		const auto doneLabelName = context.CreateTempIdentifier();
 
-		*context.Stream << u8"jne " << jumpLabelName << u8'\n';
+		*context.Stream <<
+			u8"jne " << jumpLabelName << u8'\n' <<
+			u8"pop\n";
 
 		if (ElseBody) {
 			ElseBody->Generate(context);

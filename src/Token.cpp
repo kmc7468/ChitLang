@@ -28,4 +28,18 @@ namespace chit {
 		{ TokenType::GreaterThanOrEqual, u8">=" },
 		{ TokenType::LessThanOrEqual, u8"<=" },
 	};
+	const std::unordered_map<
+		std::u8string_view,
+		TokenType> KeywordTokens{
+
+		{ u8"void", TokenType::Void },
+		{ u8"int", TokenType::Int },
+		{ u8"long", TokenType::Long },
+		{ u8"signed", TokenType::Signed },
+		{ u8"unsigned", TokenType::Unsigned },
+
+		{ u8"return", TokenType::Return },
+		{ u8"if", TokenType::If },
+		{ u8"else", TokenType::Else },
+	};
 }

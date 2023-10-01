@@ -402,7 +402,8 @@ namespace chit {
 				*context.Stream <<
 					(isUnsigned ? u8"cmp\n" : u8"icmp\n") <<
 					jumpInstructions.at(Operator) << u8' ' << jumpLabelName << u8'\n' <<
-					u8"push 0i\n"
+					u8"pop\n" <<
+					u8"push 0i\n" <<
 					u8"jmp " << doneLabelName << u8'\n' <<
 					jumpLabelName << u8":\n" <<
 					u8"push 1i\n" <<

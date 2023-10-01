@@ -55,6 +55,9 @@ namespace chit {
 	extern const std::unordered_map<
 		TokenType,
 		std::u8string_view> TokenSymbols;
+	extern const std::unordered_map<
+		std::u8string_view,
+		TokenType> KeywordTokens;
 
 	struct Token final {
 		TokenType Type;
