@@ -125,20 +125,79 @@ namespace chit {
 			break
 
 		switch (begin.Codepoint) {
-		CASE(U'=', Assignment);
-		CASE(U'+', Addition);
-		CASE(U'-', Subtraction);
-		CASE(U'*', Multiplication);
-		CASE(U'/', Division);
-		CASE(U'%', Modulo);
+		CASE(u8'+', Addition);
+		CASE(u8'-', Subtraction);
+		CASE(u8'*', Multiplication);
+		CASE(u8'/', Division);
+		CASE(u8'%', Modulo);
 
-		CASE(U';', Semicolon);
-		CASE(U',', Comma);
+		CASE(u8';', Semicolon);
+		CASE(u8',', Comma);
 
-		CASE(U'(', LeftParenthesis);
-		CASE(U')', RightParenthesis);
-		CASE(U'{', LeftBrace);
-		CASE(U'}', RightBrace);
+		CASE(u8'(', LeftParenthesis);
+		CASE(u8')', RightParenthesis);
+		CASE(u8'{', LeftBrace);
+		CASE(u8'}', RightBrace);
+
+		case u8'=': {
+			if (m_Current < m_Source.end() && *m_Current == u8'=') {
+				m_Tokens.push_back({
+					.Type = TokenType::Equivalence,
+					.Data = { begin.Iterator, ++m_Current },
+					.Line = m_Line,
+					.Column = begin.Column,
+					});
+			} else {
+				m_Tokens.push_back({
+					.Type = TokenType::Assignment,
+					.Data = { begin.Iterator, begin.Iterator + 1 },
+					.Line = m_Line,
+					.Column = begin.Column,
+					});
+			}
+
+			break;
+		}
+
+		case u8'>': {
+			if (m_Current < m_Source.end() && *m_Current == u8'=') {
+				m_Tokens.push_back({
+					.Type = TokenType::GreaterThanOrEqual,
+					.Data = { begin.Iterator, ++m_Current },
+					.Line = m_Line,
+					.Column = begin.Column,
+				});
+			} else {
+				m_Tokens.push_back({
+					.Type = TokenType::GreaterThan,
+					.Data = { begin.Iterator, begin.Iterator + 1 },
+					.Line = m_Line,
+					.Column = begin.Column,
+				});
+			}
+
+			break;
+		}
+
+		case u8'<': {
+			if (m_Current < m_Source.end() && *m_Current == u8'=') {
+				m_Tokens.push_back({
+					.Type = TokenType::LessThanOrEqual,
+					.Data = { begin.Iterator, ++m_Current },
+					.Line = m_Line,
+					.Column = begin.Column,
+				});
+			} else {
+				m_Tokens.push_back({
+					.Type = TokenType::LessThan,
+					.Data = { begin.Iterator, begin.Iterator + 1 },
+					.Line = m_Line,
+					.Column = begin.Column,
+				});
+			}
+
+			break;
+		}
 
 		default:
 			m_Messages.push_back({

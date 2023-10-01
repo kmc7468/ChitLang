@@ -52,6 +52,10 @@ namespace chit {
 
 		std::unique_ptr<ExpressionNode> ParseExpression();
 		std::unique_ptr<ExpressionNode> ParseAssignment();				// =
+		std::unique_ptr<ExpressionNode> ParseEquivalence(
+			std::unique_ptr<ExpressionNode> leftNode = nullptr);		// ==
+		std::unique_ptr<ExpressionNode> ParseComparison(
+			std::unique_ptr<ExpressionNode> leftNode = nullptr);		// < > <= >=
 		std::unique_ptr<ExpressionNode> ParseAddition(					// + -
 			std::unique_ptr<ExpressionNode> leftNode = nullptr);
 		std::unique_ptr<ExpressionNode> ParseMultiplication(			// * / %

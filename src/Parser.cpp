@@ -96,7 +96,7 @@ namespace chit {
 		return ParseAssignment();
 	}
 	std::unique_ptr<ExpressionNode> Parser::ParseAssignment() {
-		auto leftNode = ParseAddition();
+		auto leftNode = ParseEquivalence();
 		if (!leftNode)
 			return nullptr;
 
@@ -107,6 +107,58 @@ namespace chit {
 					std::move(leftNode),
 					std::move(rightNode)
 				));
+			} else {
+				return nullptr;
+			}
+		} else {
+			return leftNode;
+		}
+	}
+	std::unique_ptr<ExpressionNode> Parser::ParseEquivalence(
+		std::unique_ptr<ExpressionNode> leftNode) {
+
+		if (!leftNode &&
+			!(leftNode = ParseComparison())) {
+
+			return nullptr;
+		}
+
+		if (AcceptToken(TokenType::Equivalence)) {
+			if (auto rightNode = ParseComparison(); rightNode) {
+				return ParseEquivalence(std::unique_ptr<ExpressionNode>(new BinaryOperatorNode(
+					TokenType::Equivalence,
+					std::move(leftNode),
+					std::move(rightNode)
+				)));
+			} else {
+				return nullptr;
+			}
+		} else {
+			return leftNode;
+		}
+	}
+	std::unique_ptr<ExpressionNode> Parser::ParseComparison(
+		std::unique_ptr<ExpressionNode> leftNode) {
+
+		if (!leftNode &&
+			!(leftNode = ParseAddition())) {
+
+			return nullptr;
+		}
+
+		if (AcceptToken(TokenType::GreaterThan)			||
+			AcceptToken(TokenType::LessThan)			||
+			AcceptToken(TokenType::GreaterThanOrEqual)	||
+			AcceptToken(TokenType::LessThanOrEqual)) {
+
+			const auto prevTokenType = PrevToken().Type;
+
+			if (auto rightNode = ParseAddition(); rightNode) {
+				return ParseComparison(std::unique_ptr<ExpressionNode>(new BinaryOperatorNode(
+					prevTokenType,
+					std::move(leftNode),
+					std::move(rightNode)
+				)));
 			} else {
 				return nullptr;
 			}

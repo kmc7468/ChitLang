@@ -18,6 +18,9 @@ namespace chit {
 		Division					= '/',
 		Modulo 						= '%',
 
+		GreaterThan					= '>',
+		LessThan					= '<',
+
 		Semicolon					= ';',
 		Comma						= ',',
 
@@ -25,6 +28,12 @@ namespace chit {
 		RightParenthesis			= ')',
 		LeftBrace					= '{',
 		RightBrace					= '}',
+
+		// Compound symbols
+		Equivalence,				// ==
+		NotEquivalence,				// !=
+		GreaterThanOrEqual,			// >=
+		LessThanOrEqual,			// <=
 
 		// Type keywords
 		Void,

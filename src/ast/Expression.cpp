@@ -7,6 +7,7 @@
 
 #include <cassert>
 #include <ranges>
+#include <unordered_map>
 #include <variant>
 
 namespace chit {
@@ -232,12 +233,19 @@ namespace chit {
 		: Operator(operator_), Left(std::move(left)), Right(std::move(right)) {
 
 		assert(
-			Operator == TokenType::Assignment		||
-			Operator == TokenType::Addition			||
-			Operator == TokenType::Subtraction		||
-			Operator == TokenType::Multiplication	||
-			Operator == TokenType::Division			||
-			Operator == TokenType::Modulo);
+			Operator == TokenType::Assignment			||
+
+			Operator == TokenType::Addition				||
+			Operator == TokenType::Subtraction			||
+			Operator == TokenType::Multiplication		||
+			Operator == TokenType::Division				||
+			Operator == TokenType::Modulo				||
+		
+			Operator == TokenType::Equivalence			||
+			Operator == TokenType::GreaterThan			||
+			Operator == TokenType::LessThan				||
+			Operator == TokenType::GreaterThanOrEqual	||
+			Operator == TokenType::LessThanOrEqual);
 		assert(Left);
 		assert(Right);
 	}
@@ -277,6 +285,11 @@ namespace chit {
 		case TokenType::Multiplication:
 		case TokenType::Division:
 		case TokenType::Modulo:
+		case TokenType::Equivalence:
+		case TokenType::GreaterThan:
+		case TokenType::LessThan:
+		case TokenType::GreaterThanOrEqual:
+		case TokenType::LessThanOrEqual:
 			if (Left->Type->IsVoid() || !IsBuiltinType(Left->Type) ||
 				Right->Type->IsVoid() || !IsBuiltinType(Right->Type)) {
 
@@ -286,10 +299,22 @@ namespace chit {
 			BuiltinType::RunIntegerPromotion(NewLeftType, Left->Type);
 			BuiltinType::RunIntegerPromotion(NewRightType, Right->Type);
 
-			Type = BuiltinType::RunUsualArithmeticConversion(
+			OperandType = BuiltinType::RunUsualArithmeticConversion(
 				NewLeftType, NewLeftType ? NewLeftType : Left->Type,
 				NewRightType, NewRightType ? NewRightType : Right->Type);
-			IsLValue = false;
+
+			if (Operator == TokenType::Equivalence			||
+				Operator == TokenType::GreaterThan			||
+				Operator == TokenType::LessThan				||
+				Operator == TokenType::GreaterThanOrEqual	||
+				Operator == TokenType::LessThanOrEqual) {
+
+				Type = BuiltinType::Int;
+				IsLValue = false;
+			} else {
+				Type = OperandType;
+				IsLValue = false;
+			}
 
 			break;
 		}
@@ -317,7 +342,12 @@ namespace chit {
 		case TokenType::Subtraction:
 		case TokenType::Multiplication:
 		case TokenType::Division:
-		case TokenType::Modulo: {
+		case TokenType::Modulo:
+		case TokenType::Equivalence:
+		case TokenType::GreaterThan:
+		case TokenType::LessThan:
+		case TokenType::GreaterThanOrEqual:
+		case TokenType::LessThanOrEqual: {
 			Left->GenerateValue(context);
 
 			if (Left->IsLValue) {
@@ -336,34 +366,51 @@ namespace chit {
 				NewRightType->GenerateConvert(context);
 			}
 
+			const auto isUnsigned = IsBuiltinType(OperandType)->IsUnsigned();
+
 			switch (Operator) {
 			case TokenType::Addition:
-				*context.Stream << u8"add\n";
-
-				break;
-
+				*context.Stream << u8"add\n"; break;
 			case TokenType::Subtraction:
-				*context.Stream << u8"sub\n";
-
-				break;
-
+				*context.Stream << u8"sub\n"; break;
 			case TokenType::Multiplication:
-				*context.Stream << (IsBuiltinType(Type)->IsUnsigned() ? u8"mul\n" : u8"imul\n");
-
-				break;
-
+				*context.Stream << (isUnsigned ? u8"mul\n" : u8"imul\n"); break;
 			case TokenType::Division:
-				*context.Stream << (IsBuiltinType(Type)->IsUnsigned() ? u8"div\n" : u8"idiv\n");
-
-				break;
-
+				*context.Stream << (isUnsigned ? u8"div\n" : u8"idiv\n"); break;
 			case TokenType::Modulo:
-				*context.Stream << (IsBuiltinType(Type)->IsUnsigned() ? u8"mod\n" : u8"imod\n");
+				*context.Stream << (isUnsigned ? u8"mod\n" : u8"imod\n"); break;
+
+			case TokenType::Equivalence:
+			case TokenType::GreaterThan:
+			case TokenType::LessThan:
+			case TokenType::GreaterThanOrEqual:
+			case TokenType::LessThanOrEqual: {
+				const auto jumpLabelName = context.CreateTempIdentifier();
+				const auto doneLabelName = context.CreateTempIdentifier();
+
+				static const std::unordered_map<
+					TokenType,
+					std::u8string_view> jumpInstructions{
+
+					{ TokenType::Equivalence, u8"je" },
+					{ TokenType::GreaterThan, u8"ja" },
+					{ TokenType::LessThan, u8"jb" },
+					{ TokenType::GreaterThanOrEqual, u8"jae" },
+					{ TokenType::LessThanOrEqual, u8"jbe" },
+				};
+
+				*context.Stream <<
+					(isUnsigned ? u8"cmp\n" : u8"icmp\n") <<
+					jumpInstructions.at(Operator) << u8' ' << jumpLabelName << u8'\n' <<
+					u8"push 0i\n"
+					u8"jmp " << doneLabelName << u8'\n' <<
+					jumpLabelName << u8":\n" <<
+					u8"push 1i\n" <<
+					doneLabelName << u8":\n";
 
 				break;
 			}
-
-			break;
+			}
 		}
 		}
 	}
