@@ -71,6 +71,7 @@ namespace chit {
 
 		std::unique_ptr<StatementNode> ParseStatement();
 		std::unique_ptr<StatementNode> ParseReturn();
+		std::unique_ptr<StatementNode> ParseIf();
 		std::unique_ptr<StatementNode> ParseFunctionDeclaration(
 			std::unique_ptr<TypeNode> returnTypeNode,
 			const Token* nameToken);
@@ -79,5 +80,6 @@ namespace chit {
 			const Token* nameToken);
 
 		std::unique_ptr<BlockNode> ParseBlock();
+		std::unique_ptr<StatementNode> ParseStatementOrBlock();
 	};
 }

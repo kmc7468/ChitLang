@@ -423,6 +423,8 @@ namespace chit {
 			return std::unique_ptr<StatementNode>(new EmptyStatementNode());
 		} else if (AcceptToken(TokenType::Return)) {
 			return ParseReturn();
+		} else if (AcceptToken(TokenType::If)) {
+			return ParseIf();
 		} else if (auto typeNode = ParseType(); typeNode) {
 			const auto nameToken = AcceptToken(TokenType::Identifier);
 			if (!nameToken) {
@@ -488,6 +490,78 @@ namespace chit {
 			std::move(exprNode)
 		));
 	}
+	std::unique_ptr<StatementNode> Parser::ParseIf() {
+		if (!AcceptToken(TokenType::LeftParenthesis)) {
+			m_Messages.push_back({
+				.Type = MessageType::Error,
+				.Data = u8"Expected '('",
+				.Line = m_Current->Line,
+				.Column = m_Current->Column,
+			});
+
+			return nullptr;
+		}
+
+		auto condNode = ParseExpression();
+		if (!condNode) {
+			m_Messages.push_back({
+				.Type = MessageType::Error,
+				.Data = u8"Expected expression",
+				.Line = m_Current->Line,
+				.Column = m_Current->Column,
+			});
+
+			return nullptr;
+		}
+
+		if (!AcceptToken(TokenType::RightParenthesis)) {
+			m_Messages.push_back({
+				.Type = MessageType::Error,
+				.Data = u8"Expected ')'",
+				.Line = m_Current->Line,
+				.Column = m_Current->Column,
+			});
+
+			return nullptr;
+		}
+
+		auto bodyNode = ParseStatementOrBlock();
+		if (!bodyNode) {
+			m_Messages.push_back({
+				.Type = MessageType::Error,
+				.Data = u8"Expected statement",
+				.Line = m_Current->Line,
+				.Column = m_Current->Column,
+			});
+
+			return nullptr;
+		}
+
+		if (AcceptToken(TokenType::Else)) {
+			if (auto elseBodyNode = ParseStatementOrBlock(); elseBodyNode) {
+				return std::unique_ptr<StatementNode>(new IfNode(
+					std::move(condNode),
+					std::move(bodyNode),
+					std::move(elseBodyNode)
+				));
+			} else {
+				return nullptr;
+			}
+		} else {
+			m_Messages.push_back({
+				.Type = MessageType::Error,
+				.Data = u8"Expected statement",
+				.Line = m_Current->Line,
+				.Column = m_Current->Column,
+			});
+
+			return std::unique_ptr<StatementNode>(new IfNode(
+				std::move(condNode),
+				std::move(bodyNode),
+				nullptr
+			));
+		}
+	}
 	std::unique_ptr<StatementNode> Parser::ParseFunctionDeclaration(
 		std::unique_ptr<TypeNode> returnTypeNode,
 		const Token* nameToken) {
@@ -535,11 +609,15 @@ namespace chit {
 
 		if (AcceptToken(TokenType::Semicolon)) {
 			return std::unique_ptr<StatementNode>(funcDeclNode.release());
-		} else if (auto blockNode = ParseBlock(); blockNode) {
-			return std::unique_ptr<StatementNode>(new FunctionDefinitionNode(
-				std::move(funcDeclNode),
-				std::move(blockNode)
-			));
+		} else if (AcceptToken(TokenType::LeftBrace)) {
+			if (auto bodyNode = ParseBlock(); bodyNode) {
+				return std::unique_ptr<StatementNode>(new FunctionDefinitionNode(
+					std::move(funcDeclNode),
+					std::move(bodyNode)
+				));
+			} else {
+				return nullptr;
+			}
 		} else {
 			m_Messages.push_back({
 				.Type = MessageType::Error,
@@ -599,9 +677,6 @@ namespace chit {
 	}
 
 	std::unique_ptr<BlockNode> Parser::ParseBlock() {
-		if (!AcceptToken(TokenType::LeftBrace))
-			return nullptr;
-
 		std::vector<std::unique_ptr<StatementNode>> statements;
 
 		while (!AcceptToken(TokenType::RightBrace)) {
@@ -613,5 +688,12 @@ namespace chit {
 		}
 
 		return std::unique_ptr<BlockNode>(new BlockNode(std::move(statements)));
+	}
+	std::unique_ptr<StatementNode> Parser::ParseStatementOrBlock() {
+		if (AcceptToken(TokenType::LeftBrace)) {
+			return ParseBlock();
+		} else {
+			return ParseStatement();
+		}
 	}
 }

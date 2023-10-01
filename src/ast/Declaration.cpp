@@ -82,18 +82,27 @@ namespace chit {
 			SetField(u8"body", Body->DumpJson()).
 			Build();
 	}
-	void FunctionDefinitionNode::Analyze(ParserContext& context) const {
+	void FunctionDefinitionNode::Analyze(chit::ParserContext& context) const {
 		if (!context.SymbolTable.IsGlobal()) {
 			// TODO: Error
 		}
 
 		Prototype->Analyze(context);
 
-		context.FunctionReturnType = Prototype->ReturnType->Type;
+		ParserContext = std::unique_ptr<chit::ParserContext>(new chit::ParserContext{
+			.Messages = context.Messages,
+			.SymbolTable = SymbolTable(context.SymbolTable),
+			.FunctionReturnType = Prototype->ReturnType->Type,
+		});
 
-		Body->Analyze(context);
+		for (const auto& parameter : Prototype->Parameters) {
+			ParserContext->SymbolTable.CreateVariableSymbol(
+				parameter.first,
+				parameter.second->Type,
+				VariableState::Initalized);
+		}
 
-		context.FunctionReturnType = nullptr;
+		Body->Analyze(*ParserContext);
 	}
 	void FunctionDefinitionNode::Generate(chit::GeneratorContext& context) const {
 		Prototype->Generate(context);

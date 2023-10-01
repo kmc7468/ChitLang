@@ -39,6 +39,8 @@ namespace chit {
 		std::unique_ptr<FunctionDeclarationNode> Prototype;
 		std::unique_ptr<BlockNode> Body;
 
+		mutable std::unique_ptr<chit::ParserContext> ParserContext;
+
 	public:
 		FunctionDefinitionNode(
 			std::unique_ptr<FunctionDeclarationNode> prototype,
@@ -46,7 +48,7 @@ namespace chit {
 
 	public:
 		virtual JsonValue DumpJson() const override;
-		virtual void Analyze(ParserContext& context) const override;
+		virtual void Analyze(chit::ParserContext& context) const override;
 		virtual void Generate(GeneratorContext& context) const override;
 	};
 }

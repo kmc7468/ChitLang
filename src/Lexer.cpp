@@ -200,11 +200,13 @@ namespace chit {
 				static const std::unordered_map<std::u8string_view, TokenType> keywords{
 					{ u8"void", TokenType::Void },
 					{ u8"int", TokenType::Int },
-					{ u8"long",TokenType::Long },
+					{ u8"long", TokenType::Long },
 					{ u8"signed", TokenType::Signed },
-					{ u8"unsigned",TokenType::Unsigned },
+					{ u8"unsigned", TokenType::Unsigned },
 
 					{ u8"return", TokenType::Return },
+					{ u8"if", TokenType::If },
+					{ u8"else", TokenType::Else },
 				};
 				if (const auto keywordIter = keywords.find(token.Data);
 					keywordIter != keywords.end()) {

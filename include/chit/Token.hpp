@@ -23,6 +23,8 @@ namespace chit {
 
 		// Other keywords,
 		Return,
+		If,
+		Else,
 
 		// Symbols
 		Assignment,					// =
