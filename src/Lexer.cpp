@@ -76,22 +76,41 @@ namespace chit {
 	}
 
 	void Lexer::LexNumber(const Cursor& begin) {
+		std::u8string::iterator dataEnd;
+
 		while (m_Current < m_Source.end()) {
 			const auto next = NextCursor();
 			const auto& codepoint = next.Codepoint;
 
 			if (!std::isdigit(codepoint)) {
-				m_Tokens.push_back({
-					.Type = TokenType::DecInteger,
-					.Data = { begin.Iterator, next.Iterator },
-					.Line = m_Line,
-					.Column = begin.Column,
-				});
+				dataEnd = next.Iterator;
 
 				PrevCursor();
 				break;
 			}
 		}
+
+		std::u8string::iterator suffixEnd = dataEnd;
+
+		while (m_Current < m_Source.end()) {
+			const auto next = NextCursor();
+			const auto& codepoint = next.Codepoint;
+
+			if (!std::isalpha(codepoint)) {
+				suffixEnd = next.Iterator;
+
+				PrevCursor();
+				break;
+			}
+		}
+
+		m_Tokens.push_back({
+			.Type = TokenType::DecInteger,
+			.Data = { begin.Iterator, dataEnd },
+			.Suffix = { dataEnd, suffixEnd },
+			.Line = m_Line,
+			.Column = begin.Column,
+		});
 	}
 	void Lexer::LexSpeicalSymbol(const Cursor& begin) {
 #define CASE(c, e)													\

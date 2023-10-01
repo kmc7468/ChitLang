@@ -62,7 +62,7 @@ namespace chit {
 
 		if (IsVariableSymbol(Symbol)) {
 			*context.Stream << u8"store " << Name << u8'\n' <<
-							   u8"lea " << Name << u8'\n';
+							   u8"load " << Name << u8'\n';
 		} else {
 			// TODO: Error
 		}
@@ -92,7 +92,7 @@ namespace chit {
 	JsonValue IntConstantNode::DumpJson() const {
 		return JsonObject().
 			SetField(u8"class", u8"IntConstantNode").
-			SetField(u8"value", Value).
+			SetField(u8"value", static_cast<std::int64_t>(Value)).
 			Merge(ExpressionNode::DumpJson()).
 			Build();
 	}
@@ -104,7 +104,122 @@ namespace chit {
 		assert(Type);
 		assert(context.Stream);
 
-		*context.Stream << u8"push " << ToUtf8String(Value) << u8'\n';
+		*context.Stream << u8"push " << ToUtf8String(Value) << u8"i\n";
+	}
+}
+
+namespace chit {
+	UnsignedIntConstantNode::UnsignedIntConstantNode(std::uint32_t value) noexcept
+		: Value(value) {}
+
+	JsonValue UnsignedIntConstantNode::DumpJson() const {
+		return JsonObject().
+			SetField(u8"class", u8"UnsignedIntConstantNode").
+			SetField(u8"value", static_cast<std::uint64_t>(Value)).
+			Merge(ExpressionNode::DumpJson()).
+			Build();
+	}
+	void UnsignedIntConstantNode::Analyze(ParserContext&) const {
+		Type = BuiltinType::UnsignedInt;
+		IsLValue = false;
+	}
+	void UnsignedIntConstantNode::GenerateValue(GeneratorContext& context) const {
+		assert(Type);
+		assert(context.Stream);
+
+		*context.Stream << u8"push " << ToUtf8String(Value) << u8"i\n";
+	}
+}
+
+namespace chit {
+	LongIntConstantNode::LongIntConstantNode(std::int32_t value) noexcept
+		: Value(value) {}
+
+	JsonValue LongIntConstantNode::DumpJson() const {
+		return JsonObject().
+			SetField(u8"class", u8"LongIntConstantNode").
+			SetField(u8"value", static_cast<std::int64_t>(Value)).
+			Merge(ExpressionNode::DumpJson()).
+			Build();
+	}
+	void LongIntConstantNode::Analyze(ParserContext&) const {
+		Type = BuiltinType::LongInt;
+		IsLValue = false;
+	}
+	void LongIntConstantNode::GenerateValue(GeneratorContext& context) const {
+		assert(Type);
+		assert(context.Stream);
+
+		*context.Stream << u8"push " << ToUtf8String(Value) << u8"i\n";
+	}
+}
+
+namespace chit {
+	UnsignedLongIntConstantNode::UnsignedLongIntConstantNode(std::uint32_t value) noexcept
+		: Value(value) {}
+
+	JsonValue UnsignedLongIntConstantNode::DumpJson() const {
+		return JsonObject().
+			SetField(u8"class", u8"UnsignedLongIntConstantNode").
+			SetField(u8"value", static_cast<std::uint64_t>(Value)).
+			Merge(ExpressionNode::DumpJson()).
+			Build();
+	}
+	void UnsignedLongIntConstantNode::Analyze(ParserContext&) const {
+		Type = BuiltinType::UnsignedLongInt;
+		IsLValue = false;
+	}
+	void UnsignedLongIntConstantNode::GenerateValue(GeneratorContext& context) const {
+		assert(Type);
+		assert(context.Stream);
+
+		*context.Stream << u8"push " << ToUtf8String(Value) << u8"i\n";
+	}
+}
+
+namespace chit {
+	LongLongIntConstantNode::LongLongIntConstantNode(std::int64_t value) noexcept
+		: Value(value) {}
+
+	JsonValue LongLongIntConstantNode::DumpJson() const {
+		return JsonObject().
+			SetField(u8"class", u8"LongLongIntConstantNode").
+			SetField(u8"value", Value).
+			Merge(ExpressionNode::DumpJson()).
+			Build();
+	}
+	void LongLongIntConstantNode::Analyze(ParserContext&) const {
+		Type = BuiltinType::LongLongInt;
+		IsLValue = false;
+	}
+	void LongLongIntConstantNode::GenerateValue(GeneratorContext& context) const {
+		assert(Type);
+		assert(context.Stream);
+
+		*context.Stream << u8"push " << ToUtf8String(Value) << u8"l\n";
+	}
+}
+
+namespace chit {
+	UnsignedLongLongIntConstantNode::UnsignedLongLongIntConstantNode(std::uint64_t value) noexcept
+		: Value(value) {}
+
+	JsonValue UnsignedLongLongIntConstantNode::DumpJson() const {
+		return JsonObject().
+			SetField(u8"class", u8"UnsignedLongLongIntConstantNode").
+			SetField(u8"value", Value).
+			Merge(ExpressionNode::DumpJson()).
+			Build();
+	}
+	void UnsignedLongLongIntConstantNode::Analyze(ParserContext&) const {
+		Type = BuiltinType::UnsignedLongLongInt;
+		IsLValue = false;
+	}
+	void UnsignedLongLongIntConstantNode::GenerateValue(GeneratorContext& context) const {
+		assert(Type);
+		assert(context.Stream);
+
+		*context.Stream << u8"push " << ToUtf8String(Value) << u8"l\n";
 	}
 }
 
@@ -149,7 +264,7 @@ namespace chit {
 			}
 
 			Type = Left->Type;
-			IsLValue = true;
+			IsLValue = false;
 
 		case TokenType::Addition:
 		case TokenType::Subtraction:
@@ -215,27 +330,6 @@ namespace chit {
 
 			break;
 		}
-	}
-	void BinaryOperatorNode::GenerateAssignment(GeneratorContext& context) const {
-		assert(Type);
-		assert(context.Stream);
-
-		if (Operator != TokenType::Assignment) {
-			// TODO: Error
-		}
-
-		const auto rhsTempName = context.CreateTempIdentifier();
-		const auto lhsTempName = context.CreateTempIdentifier();
-
-		*context.Stream << u8"store " << rhsTempName << u8'\n';
-
-		GenerateValue(context);
-
-		*context.Stream << u8"store " << lhsTempName << u8'\n' <<
-						   u8"load " << rhsTempName << u8'\n' <<
-						   u8"load " << lhsTempName << u8'\n' <<
-						   u8"tstore\n" <<
-						   u8"load " << lhsTempName << u8'\n';
 	}
 }
 

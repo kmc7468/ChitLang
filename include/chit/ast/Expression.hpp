@@ -40,6 +40,71 @@ namespace chit {
 		virtual void Analyze(ParserContext& context) const override;
 		virtual void GenerateValue(GeneratorContext& context) const override;
 	};
+
+	class UnsignedIntConstantNode final : public ExpressionNode {
+	public:
+		std::uint32_t Value;
+
+	public:
+		explicit UnsignedIntConstantNode(std::uint32_t value) noexcept;
+
+	public:
+		virtual JsonValue DumpJson() const override;
+		virtual void Analyze(ParserContext& context) const override;
+		virtual void GenerateValue(GeneratorContext& context) const override;
+	};
+
+	class LongIntConstantNode final : public ExpressionNode {
+	public:
+		std::int32_t Value;
+
+	public:
+		explicit LongIntConstantNode(std::int32_t value) noexcept;
+
+	public:
+		virtual JsonValue DumpJson() const override;
+		virtual void Analyze(ParserContext& context) const override;
+		virtual void GenerateValue(GeneratorContext& context) const override;
+	};
+
+	class UnsignedLongIntConstantNode final : public ExpressionNode {
+	public:
+		std::uint32_t Value;
+
+	public:
+		explicit UnsignedLongIntConstantNode(std::uint32_t value) noexcept;
+
+	public:
+		virtual JsonValue DumpJson() const override;
+		virtual void Analyze(ParserContext& context) const override;
+		virtual void GenerateValue(GeneratorContext& context) const override;
+	};
+
+	class LongLongIntConstantNode final : public ExpressionNode {
+	public:
+		std::int64_t Value;
+
+	public:
+		explicit LongLongIntConstantNode(std::int64_t value) noexcept;
+
+	public:
+		virtual JsonValue DumpJson() const override;
+		virtual void Analyze(ParserContext& context) const override;
+		virtual void GenerateValue(GeneratorContext& context) const override;
+	};
+
+	class UnsignedLongLongIntConstantNode final : public ExpressionNode {
+	public:
+		std::uint64_t Value;
+
+	public:
+		explicit UnsignedLongLongIntConstantNode(std::uint64_t value) noexcept;
+
+	public:
+		virtual JsonValue DumpJson() const override;
+		virtual void Analyze(ParserContext& context) const override;
+		virtual void GenerateValue(GeneratorContext& context) const override;
+	};
 }
 
 namespace chit {
@@ -59,7 +124,6 @@ namespace chit {
 		virtual JsonValue DumpJson() const override;
 		virtual void Analyze(ParserContext& context) const override;
 		virtual void GenerateValue(GeneratorContext& context) const override;
-		virtual void GenerateAssignment(GeneratorContext& context) const override;
 	};
 }
 

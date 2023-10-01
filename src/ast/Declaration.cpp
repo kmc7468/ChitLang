@@ -117,7 +117,7 @@ namespace chit {
 		Body->Generate(defContext);
 
 		if (Prototype->Name == u8"main") {
-			bodyStream << u8"push 0\n";
+			bodyStream << u8"push 0i\n";
 		}
 
 		bodyStream << u8"ret\n";

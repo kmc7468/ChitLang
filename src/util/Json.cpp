@@ -18,8 +18,10 @@ namespace chit {
 			return stream << u8"null";
 		} else if (std::holds_alternative<std::u8string>(value)) {
 			return stream << u8'"' << std::get<std::u8string>(value) << u8'"';
-		} else if (std::holds_alternative<long long>(value)) {
-			return stream << ToUtf8String(std::get<long long>(value));
+		} else if (std::holds_alternative<std::int64_t>(value)) {
+			return stream << ToUtf8String(std::get<std::int64_t>(value));
+		} else if (std::holds_alternative<std::uint64_t>(value)) {
+			return stream << ToUtf8String(std::get<std::uint64_t>(value));
 		} else if (std::holds_alternative<bool>(value)) {
 			return stream << (std::get<bool>(value) ? u8"true" : u8"false");
 		} else if (std::holds_alternative<std::unique_ptr<JsonArray>>(value)) {

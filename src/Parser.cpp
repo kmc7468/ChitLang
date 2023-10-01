@@ -1,12 +1,14 @@
 #include <chit/Parser.hpp>
 
 #include <chit/Generator.hpp>
+#include <chit/Type.hpp>
 #include <chit/ast/Declaration.hpp>
 #include <chit/ast/Expression.hpp>
 #include <chit/ast/Statement.hpp>
 #include <chit/ast/Type.hpp>
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -63,6 +65,7 @@ namespace chit {
 			return ParseBuiltinType();
 		}
 	}
+
 	std::unique_ptr<TypeNode> Parser::ParseBuiltinType() {
 		std::vector<std::u8string_view> names;
 
@@ -199,30 +202,168 @@ namespace chit {
 		if (ACCEPT(nameToken, TokenType::Identifier)) {
 			return std::unique_ptr<ExpressionNode>(new IdentifierNode(nameToken->Data));
 		} else if (ACCEPT(integerToken, TokenType::DecInteger)) {
-			if (integerToken->Data.front() == u8'-') {
-				const auto value = std::stoull(std::string(
-					integerToken->Data.begin() + 1, integerToken->Data.end()));
-				if (value > 2147483648) { // 2^31
-					// TODO
-				} else {
-					return std::unique_ptr<ExpressionNode>(new IntConstantNode(
-						-static_cast<std::int32_t>(value)
-					));
-				}
-			} else {
-				const auto value = std::stoull(std::string(
-					integerToken->Data.begin(), integerToken->Data.end()));
-				if (value >= 2147483648) { // 2^31
-					// TODO
-				} else {
-					return std::unique_ptr<ExpressionNode>(new IntConstantNode(
-						static_cast<std::int32_t>(value)
-					));
-				}
-			}
+			return ParseInteger(integerToken);
 		} else {
 			return nullptr;
 		}
+	}
+
+	std::unique_ptr<ExpressionNode> Parser::ParseInteger(
+		const Token* integerToken) {
+
+		bool isUnsigned = false, isLong = false, isLongLong = false;
+
+		if (!ParseIntegerSuffix(integerToken, isUnsigned, isLong, isLongLong))
+			return nullptr;
+
+		unsigned long long value;
+		TypePtr type;
+
+		try {
+			value = std::stoull(std::string(
+				integerToken->Data.begin(), integerToken->Data.end()));
+		} catch (...) {
+			m_Messages.push_back({
+				.Type = MessageType::Error,
+				.Data = u8"Too large integer constant",
+				.Line = integerToken->Line,
+				.Column = integerToken->Column,
+			});
+
+			return nullptr;
+		}
+
+		if (value > 9223372036854775807) {							// 2^63 - 1: unsigned long long
+			if (isUnsigned) {
+				type = BuiltinType::UnsignedLongLongInt;
+			}
+		} else if (value > 4294967295) {							// 2^32 - 1: long long
+			if (isUnsigned) {
+				type = BuiltinType::UnsignedLongLongInt;
+			} else {
+				type = BuiltinType::LongLongInt;
+			}
+		} else if (value > 2147483648) {							// 2^31 - 1: unsigned long, unsigned int
+			if (isUnsigned) {
+				if (isLongLong) {
+					type = BuiltinType::UnsignedLongLongInt;
+				} else if (isLong) {
+					type = BuiltinType::UnsignedLongInt;
+				} else {
+					type = BuiltinType::UnsignedInt;
+				}
+			} else {
+				type = BuiltinType::LongLongInt;
+			}
+		} else {
+			if (isUnsigned) {
+				if (isLongLong) {
+					type = BuiltinType::UnsignedLongLongInt;
+				} else if (isLong) {
+					type = BuiltinType::UnsignedLongInt;
+				} else {
+					type = BuiltinType::UnsignedInt;
+				}
+			} else {
+				if (isLongLong) {
+					type = BuiltinType::LongLongInt;
+				} else if (isLong) {
+					type = BuiltinType::LongInt;
+				} else {
+					type = BuiltinType::Int;
+				}
+			}
+		}
+
+		if (type == BuiltinType::Int) {
+			return std::unique_ptr<ExpressionNode>(new IntConstantNode(
+				static_cast<std::int32_t>(value)
+			));
+		} else if (type == BuiltinType::UnsignedInt) {
+			return std::unique_ptr<ExpressionNode>(new UnsignedIntConstantNode(
+				static_cast<std::uint32_t>(value)
+			));
+		} else if (type == BuiltinType::LongInt) {
+			return std::unique_ptr<ExpressionNode>(new LongIntConstantNode(
+				static_cast<std::int32_t>(value)
+			));
+		} else if (type == BuiltinType::UnsignedLongInt) {
+			return std::unique_ptr<ExpressionNode>(new UnsignedLongIntConstantNode(
+				static_cast<std::uint32_t>(value)
+			));
+		} else if (type == BuiltinType::LongLongInt) {
+			return std::unique_ptr<ExpressionNode>(new LongLongIntConstantNode(
+				static_cast<std::int64_t>(value)
+			));
+		} else if (type == BuiltinType::UnsignedLongLongInt) {
+			return std::unique_ptr<ExpressionNode>(new UnsignedLongLongIntConstantNode(
+				static_cast<std::uint64_t>(value)
+			));
+		} else {
+			m_Messages.push_back({
+				.Type = MessageType::Error,
+				.Data = u8"Too large integer constant",
+				.Line = integerToken->Line,
+				.Column = integerToken->Column,
+			});
+
+			return nullptr;
+		}
+	}
+	bool Parser::ParseIntegerSuffix(
+		const Token* integerToken,
+		bool& isUnsigned, bool& isLong, bool& isLongLong) {
+
+		for (std::size_t i = 0; i < integerToken->Suffix.size(); ++i) {
+			if (integerToken->Suffix[i] == u8'u' ||
+				integerToken->Suffix[i] == u8'U') {
+
+				if (isUnsigned) {
+					m_Messages.push_back({
+						.Type = MessageType::Error,
+						.Data = u8"Duplicated unsigned-suffix",
+						.Line = integerToken->Line,
+						.Column = integerToken->Column,
+					});
+
+					return false;
+				} else {
+					isUnsigned = true;
+				}
+			} else if (
+				integerToken->Suffix[i] == u8'l' ||
+				integerToken->Suffix[i] == u8'L') {
+
+				if (isLong || isLongLong) {
+					m_Messages.push_back({
+						.Type = MessageType::Error,
+						.Data = u8"Duplicated long-suffix",
+						.Line = integerToken->Line,
+						.Column = integerToken->Column,
+					});
+
+					return false;
+				} else if (i + 1 != integerToken->Suffix.size() &&
+					integerToken->Suffix[i + 1] == integerToken->Suffix[i]) {
+
+					isLongLong = true;
+					++i;
+				} else {
+					isLong = true;
+				}
+			} else {
+				m_Messages.push_back({
+					.Type = MessageType::Error,
+					.Data = u8"Invalid suffix",
+					.Line = integerToken->Line,
+					.Column = integerToken->Column,
+				});
+
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	std::unique_ptr<StatementNode> Parser::ParseStatement() {

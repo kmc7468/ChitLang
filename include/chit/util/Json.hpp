@@ -16,6 +16,7 @@ namespace chit {
 		std::monostate,					// Null
 		std::u8string,					// String
 		std::int64_t,					// Signed integer
+		std::uint64_t,					// Unsigned integer
 		bool,							// Boolean
 		std::unique_ptr<JsonArray>,		// Array
 		std::unique_ptr<JsonObject>>;	// Object

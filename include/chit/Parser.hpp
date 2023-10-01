@@ -45,6 +45,7 @@ namespace chit {
 		const Token& PrevToken() const noexcept;
 
 		std::unique_ptr<TypeNode> ParseType();
+
 		std::unique_ptr<TypeNode> ParseBuiltinType();
 
 		std::unique_ptr<ExpressionNode> ParseExpression();
@@ -55,6 +56,12 @@ namespace chit {
 			std::unique_ptr<ExpressionNode> leftNode = nullptr);
 		std::unique_ptr<ExpressionNode> ParseFunctionCall();			// ()
 		std::unique_ptr<ExpressionNode> ParseSimpleExpression();
+
+		std::unique_ptr<ExpressionNode> ParseInteger(
+			const Token* integerToken);
+		bool ParseIntegerSuffix(
+			const Token* integerToken,
+			bool& isUnsigned, bool& isLong, bool& isLongLong);
 
 		std::unique_ptr<StatementNode> ParseStatement();
 		std::unique_ptr<StatementNode> ParseReturn();
