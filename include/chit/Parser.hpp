@@ -3,6 +3,7 @@
 #include <chit/Message.hpp>
 #include <chit/Symbol.hpp>
 #include <chit/Token.hpp>
+#include <chit/Type.hpp>
 #include <chit/ast/Node.hpp>
 
 #include <memory>
@@ -14,6 +15,7 @@ namespace chit {
 		std::vector<Message>& Messages;
 
 		chit::SymbolTable SymbolTable;
+		TypePtr FunctionReturnType;
 	};
 }
 

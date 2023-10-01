@@ -1,6 +1,7 @@
 #include <chit/ast/Statement.hpp>
 
 #include <chit/Generator.hpp>
+#include <chit/Parser.hpp>
 
 #include <cassert>
 #include <utility>
@@ -22,6 +23,8 @@ namespace chit {
 		Expression->Analyze(context);
 
 		// TODO: Type checking
+
+		FunctionReturnType = context.FunctionReturnType;
 	}
 	void ReturnNode::Generate(GeneratorContext& context) const {
 		assert(context.Stream);
@@ -30,6 +33,9 @@ namespace chit {
 
 		if (Expression->IsLValue) {
 			*context.Stream << u8"tload\n";
+		}
+		if (!FunctionReturnType->IsEqual(Expression->Type)) {
+			FunctionReturnType->GenerateConvert(context);
 		}
 
 		*context.Stream << u8"ret\n";

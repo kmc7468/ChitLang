@@ -114,6 +114,9 @@ namespace chit {
 		std::unique_ptr<ExpressionNode> Left;
 		std::unique_ptr<ExpressionNode> Right;
 
+		mutable TypePtr NewLeftType;
+		mutable TypePtr NewRightType;
+
 	public:
 		explicit BinaryOperatorNode(
 			TokenType operator_,

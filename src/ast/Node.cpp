@@ -111,6 +111,7 @@ namespace chit {
 		ParserContext = std::unique_ptr<chit::ParserContext>(new chit::ParserContext{
 			.Messages = context.Messages,
 			.SymbolTable = SymbolTable(context.SymbolTable),
+			.FunctionReturnType = context.FunctionReturnType,
 		});
 
 		for (auto& statement : Statements) {

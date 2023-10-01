@@ -1,13 +1,15 @@
 #pragma once
 
-#include <chit/Assembly.hpp>
 #include <chit/util/Json.hpp>
 
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <vector>
 
 namespace chit {
+	class GeneratorContext;
+
 	class Type {
 	public:
 		Type() noexcept = default;
@@ -19,6 +21,7 @@ namespace chit {
 
 	public:
 		virtual JsonValue DumpJson() const = 0;
+		virtual void GenerateConvert(GeneratorContext& context) const = 0;
 
 		virtual bool IsEqual(const std::shared_ptr<Type>& other) const noexcept;
 		virtual bool IsVoid() const noexcept;
@@ -40,16 +43,27 @@ namespace chit {
 
 	public:
 		std::u8string_view Name;
+		std::optional<int> Rank;
 
 	public:
 		explicit BuiltinType(std::u8string_view name) noexcept;
+		BuiltinType(std::u8string_view name, int rank) noexcept;
 
 	public:
 		virtual JsonValue DumpJson() const override;
+		virtual void GenerateConvert(GeneratorContext& context) const override;
 
 		virtual bool IsVoid() const noexcept override;
 		bool IsUnsigned() const noexcept;
+
+	public:
+		static TypePtr RunUsualArithmeticConversion(
+			TypePtr& newLeftType, const TypePtr& leftType,
+			TypePtr& newRightType, const TypePtr& rightType);
+		static void RunIntegerPromotion(TypePtr& newType, const TypePtr& type);
 	};
+
+	std::shared_ptr<BuiltinType> IsBuiltinType(const TypePtr& type) noexcept;
 }
 
 namespace chit {
@@ -65,6 +79,7 @@ namespace chit {
 
 	public:
 		virtual JsonValue DumpJson() const override;
+		virtual void GenerateConvert(GeneratorContext& context) const override;
 
 		virtual bool IsEqual(const TypePtr& other) const noexcept override;
 	};;

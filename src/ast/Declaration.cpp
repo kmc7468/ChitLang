@@ -83,12 +83,17 @@ namespace chit {
 			Build();
 	}
 	void FunctionDefinitionNode::Analyze(ParserContext& context) const {
-		Prototype->Analyze(context);
-		Body->Analyze(context);
-
 		if (!context.SymbolTable.IsGlobal()) {
 			// TODO: Error
 		}
+
+		Prototype->Analyze(context);
+
+		context.FunctionReturnType = Prototype->ReturnType->Type;
+
+		Body->Analyze(context);
+
+		context.FunctionReturnType = nullptr;
 	}
 	void FunctionDefinitionNode::Generate(chit::GeneratorContext& context) const {
 		Prototype->Generate(context);
@@ -150,6 +155,8 @@ namespace chit {
 
 		if (Initializer) {
 			Initializer->Analyze(context);
+
+			// TODO: Type checking
 		}
 
 		Symbol = IsVariableSymbol(context.SymbolTable.CreateVariableSymbol(
@@ -166,6 +173,10 @@ namespace chit {
 
 		if (Initializer) {
 			Initializer->GenerateValue(context);
+
+			if (!Type->Type->IsEqual(Initializer->Type)) {
+				Type->Type->GenerateConvert(context);
+			}
 
 			*context.Stream << u8"store " << Name << u8'\n';
 		}

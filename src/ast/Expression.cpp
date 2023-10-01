@@ -263,6 +263,12 @@ namespace chit {
 				// TODO: Error
 			}
 
+			if (!Left->Type->IsEqual(Right->Type)) {
+				// TODO: Type checking
+
+				NewRightType = Left->Type;
+			}
+
 			Type = Left->Type;
 			IsLValue = false;
 
@@ -271,7 +277,18 @@ namespace chit {
 		case TokenType::Multiplication:
 		case TokenType::Division:
 		case TokenType::Modulo:
-			Type = Left->Type; // TODO
+			if (Left->Type->IsVoid() || !IsBuiltinType(Left->Type) ||
+				Right->Type->IsVoid() || !IsBuiltinType(Right->Type)) {
+
+				// TODO: Error
+			}
+
+			BuiltinType::RunIntegerPromotion(NewLeftType, Left->Type);
+			BuiltinType::RunIntegerPromotion(NewRightType, Right->Type);
+
+			Type = BuiltinType::RunUsualArithmeticConversion(
+				NewLeftType, NewLeftType ? NewLeftType : Left->Type,
+				NewRightType, NewRightType ? NewRightType : Right->Type);
 			IsLValue = false;
 
 			break;
@@ -288,6 +305,9 @@ namespace chit {
 			if (Right->IsLValue) {
 				*context.Stream << u8"tload\n";
 			}
+			if (NewRightType) {
+				NewRightType->GenerateConvert(context);
+			}
 
 			Left->GenerateAssignment(context);
 
@@ -297,9 +317,24 @@ namespace chit {
 		case TokenType::Subtraction:
 		case TokenType::Multiplication:
 		case TokenType::Division:
-		case TokenType::Modulo:
+		case TokenType::Modulo: {
 			Left->GenerateValue(context);
+
+			if (Left->IsLValue) {
+				*context.Stream << u8"tload\n";
+			}
+			if (NewLeftType) {
+				NewLeftType->GenerateConvert(context);
+			}
+
 			Right->GenerateValue(context);
+
+			if (Right->IsLValue) {
+				*context.Stream << u8"tload\n";
+			}
+			if (NewRightType) {
+				NewRightType->GenerateConvert(context);
+			}
 
 			switch (Operator) {
 			case TokenType::Addition:
@@ -313,22 +348,23 @@ namespace chit {
 				break;
 
 			case TokenType::Multiplication:
-				*context.Stream << u8"imul\n"; // TODO
+				*context.Stream << (IsBuiltinType(Type)->IsUnsigned() ? u8"mul\n" : u8"imul\n");
 
 				break;
 
 			case TokenType::Division:
-				*context.Stream << u8"idiv\n"; // TODO
+				*context.Stream << (IsBuiltinType(Type)->IsUnsigned() ? u8"div\n" : u8"idiv\n");
 
 				break;
 
 			case TokenType::Modulo:
-				*context.Stream << u8"imod\n"; // TODO
+				*context.Stream << (IsBuiltinType(Type)->IsUnsigned() ? u8"mod\n" : u8"imod\n");
 
 				break;
 			}
 
 			break;
+		}
 		}
 	}
 }

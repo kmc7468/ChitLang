@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chit/Type.hpp>
 #include <chit/ast/Node.hpp>
 #include <chit/util/Json.hpp>
 
@@ -9,6 +10,8 @@ namespace chit {
 	class ReturnNode final : public StatementNode {
 	public:
 		std::unique_ptr<ExpressionNode> Expression;
+
+		mutable TypePtr FunctionReturnType;
 
 	public:
 		explicit ReturnNode(std::unique_ptr<ExpressionNode> expression) noexcept;
