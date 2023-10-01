@@ -253,7 +253,7 @@ namespace chit {
 	JsonValue BinaryOperatorNode::DumpJson() const {
 		return JsonObject().
 			SetField(u8"class", u8"BinaryOperatorNode").
-			SetField(u8"operator", std::u8string(1, char8_t(Operator))).
+			SetField(u8"operator", std::u8string(TokenSymbols.at(Operator))).
 			SetField(u8"left", Left->DumpJson()).
 			SetField(u8"right", Right->DumpJson()).
 			Merge(ExpressionNode::DumpJson()).

@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <string_view>
+#include <unordered_map>
 
 namespace chit {
 	enum class TokenType {
@@ -10,30 +11,8 @@ namespace chit {
 
 		Identifier,
 
-		// Symbols
-		Assignment					= '=',
-		Addition					= '+',
-		Subtraction					= '-',
-		Multiplication				= '*',
-		Division					= '/',
-		Modulo 						= '%',
-
-		GreaterThan					= '>',
-		LessThan					= '<',
-
-		Semicolon					= ';',
-		Comma						= ',',
-
-		LeftParenthesis				= '(',
-		RightParenthesis			= ')',
-		LeftBrace					= '{',
-		RightBrace					= '}',
-
-		// Compound symbols
-		Equivalence,				// ==
-		NotEquivalence,				// !=
-		GreaterThanOrEqual,			// >=
-		LessThanOrEqual,			// <=
+		// Literals and Constants
+		DecInteger,
 
 		// Type keywords
 		Void,
@@ -45,9 +24,35 @@ namespace chit {
 		// Other keywords,
 		Return,
 
-		// Literals and Constants
-		DecInteger,
+		// Symbols
+		Assignment,					// =
+		Addition,					// +
+		Subtraction,				// -
+		Multiplication,				// *
+		Division,					// /
+		Modulo,						// %
+
+		GreaterThan,				// >
+		LessThan,					// <
+
+		Semicolon,					// ;
+		Comma,						// ,
+
+		LeftParenthesis,			// (
+		RightParenthesis,			// )
+		LeftBrace,					// {
+		RightBrace,					// }
+
+		// Compound symbols
+		Equivalence,				// ==
+		NotEquivalence,				// !=
+		GreaterThanOrEqual,			// >=
+		LessThanOrEqual,			// <=
 	};
+
+	extern const std::unordered_map<
+		TokenType,
+		std::u8string_view> TokenSymbols;
 
 	struct Token final {
 		TokenType Type;

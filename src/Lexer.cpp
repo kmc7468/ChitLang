@@ -113,16 +113,40 @@ namespace chit {
 		});
 	}
 	void Lexer::LexSpeicalSymbol(const Cursor& begin) {
-#define CASE(c, e)													\
-		case c:														\
-			m_Tokens.push_back({									\
-				.Type = TokenType::e,								\
-				.Data = { begin.Iterator, begin.Iterator + 1 },		\
-				.Line = m_Line,										\
-				.Column = begin.Column,								\
-			});														\
-																	\
+#define CASE(c, e)														\
+		case c:															\
+			m_Tokens.push_back({										\
+				.Type = TokenType::e,									\
+				.Data = { begin.Iterator, begin.Iterator + 1 },			\
+				.Line = m_Line,											\
+				.Column = begin.Column,									\
+			});															\
+																		\
 			break
+
+#define COMPOUND_CASE(c, o)												\
+		case c:															\
+			o															\
+																		\
+			break
+#define ADD(c, e, o)													\
+		if (m_Current < m_Source.end() && *m_Current == c) {			\
+			m_Tokens.push_back({										\
+				.Type = TokenType::e,									\
+				.Data = { begin.Iterator, ++m_Current },				\
+				.Line = m_Line,											\
+				.Column = begin.Column,									\
+			});															\
+		} o
+#define END(e)															\
+		else {															\
+			m_Tokens.push_back({										\
+				.Type = TokenType::e,									\
+				.Data = { begin.Iterator, begin.Iterator + 1 },			\
+				.Line = m_Line,											\
+				.Column = begin.Column,									\
+			});															\
+		}
 
 		switch (begin.Codepoint) {
 		CASE(u8'+', Addition);
@@ -139,65 +163,15 @@ namespace chit {
 		CASE(u8'{', LeftBrace);
 		CASE(u8'}', RightBrace);
 
-		case u8'=': {
-			if (m_Current < m_Source.end() && *m_Current == u8'=') {
-				m_Tokens.push_back({
-					.Type = TokenType::Equivalence,
-					.Data = { begin.Iterator, ++m_Current },
-					.Line = m_Line,
-					.Column = begin.Column,
-					});
-			} else {
-				m_Tokens.push_back({
-					.Type = TokenType::Assignment,
-					.Data = { begin.Iterator, begin.Iterator + 1 },
-					.Line = m_Line,
-					.Column = begin.Column,
-					});
-			}
-
-			break;
-		}
-
-		case u8'>': {
-			if (m_Current < m_Source.end() && *m_Current == u8'=') {
-				m_Tokens.push_back({
-					.Type = TokenType::GreaterThanOrEqual,
-					.Data = { begin.Iterator, ++m_Current },
-					.Line = m_Line,
-					.Column = begin.Column,
-				});
-			} else {
-				m_Tokens.push_back({
-					.Type = TokenType::GreaterThan,
-					.Data = { begin.Iterator, begin.Iterator + 1 },
-					.Line = m_Line,
-					.Column = begin.Column,
-				});
-			}
-
-			break;
-		}
-
-		case u8'<': {
-			if (m_Current < m_Source.end() && *m_Current == u8'=') {
-				m_Tokens.push_back({
-					.Type = TokenType::LessThanOrEqual,
-					.Data = { begin.Iterator, ++m_Current },
-					.Line = m_Line,
-					.Column = begin.Column,
-				});
-			} else {
-				m_Tokens.push_back({
-					.Type = TokenType::LessThan,
-					.Data = { begin.Iterator, begin.Iterator + 1 },
-					.Line = m_Line,
-					.Column = begin.Column,
-				});
-			}
-
-			break;
-		}
+		COMPOUND_CASE(u8'=',
+			ADD(u8'=', Equivalence,
+			END(Assignment)));
+		COMPOUND_CASE(u8'>',
+			ADD(u8'=', GreaterThanOrEqual,
+			END(GreaterThan)));
+		COMPOUND_CASE(u8'<',
+			ADD(u8'=', LessThanOrEqual,
+			END(LessThan)));
 
 		default:
 			m_Messages.push_back({
