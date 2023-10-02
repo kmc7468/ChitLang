@@ -7,6 +7,30 @@
 #include <memory>
 
 namespace chit {
+	class EmptyStatementNode final : public StatementNode {
+	public:
+		virtual JsonValue DumpJson() const override;
+		virtual void Analyze(ParserContext& context) const override;
+		virtual void Generate(GeneratorContext& context) const override;
+	};
+}
+
+namespace chit {
+	class ExpressionStatementNode final : public StatementNode {
+	public:
+		std::unique_ptr<ExpressionNode> Expression;
+
+	public:
+		explicit ExpressionStatementNode(std::unique_ptr<ExpressionNode> expression) noexcept;
+
+	public:
+		virtual JsonValue DumpJson() const override;
+		virtual void Analyze(ParserContext& context) const override;
+		virtual void Generate(GeneratorContext& context) const override;
+	};
+}
+
+namespace chit {
 	class ReturnNode final : public StatementNode {
 	public:
 		std::unique_ptr<ExpressionNode> Expression;

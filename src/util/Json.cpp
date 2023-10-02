@@ -89,8 +89,8 @@ namespace chit {
 
 		auto& valueObject = *std::get<std::unique_ptr<JsonObject>>(value);
 
-		for (auto& [name, value] : valueObject.m_Fields) {
-			SetField(std::move(name), std::move(value));
+		for (auto& [name, fieldValue] : valueObject.m_Fields) {
+			SetField(std::move(name), std::move(fieldValue));
 		}
 
 		return *this;

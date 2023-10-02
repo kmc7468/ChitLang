@@ -12,16 +12,6 @@ namespace chit {
 }
 
 namespace chit {
-	void EmptyStatementNode::Analyze(ParserContext&) const {}
-}
-
-namespace chit {
-	void ExpressionStatementNode::Analyze(ParserContext& context) const {
-		Expression->Analyze(context);
-	}
-}
-
-namespace chit {
 	void BlockNode::Analyze(chit::ParserContext& context) const {
 		ParserContext = std::unique_ptr<chit::ParserContext>(new chit::ParserContext{
 			.Messages = context.Messages,

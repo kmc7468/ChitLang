@@ -22,20 +22,6 @@ namespace chit {
 }
 
 namespace chit {
-	void EmptyStatementNode::Generate(GeneratorContext&) const {}
-}
-
-namespace chit {
-	void ExpressionStatementNode::Generate(GeneratorContext& context) const {
-		assert(context.Stream);
-
-		Expression->GenerateValue(context);
-
-		*context.Stream << u8"pop\n";
-	}
-}
-
-namespace chit {
 	void BlockNode::Generate(GeneratorContext& context) const {
 		assert(ParserContext);
 

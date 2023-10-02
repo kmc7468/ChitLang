@@ -3,6 +3,16 @@
 #include <chit/Parser.hpp>
 
 namespace chit {
+	void EmptyStatementNode::Analyze(ParserContext&) const {}
+}
+
+namespace chit {
+	void ExpressionStatementNode::Analyze(ParserContext& context) const {
+		Expression->Analyze(context);
+	}
+}
+
+namespace chit {
 	void ReturnNode::Analyze(ParserContext& context) const {
 		Expression->Analyze(context);
 

@@ -4,6 +4,31 @@
 #include <utility>
 
 namespace chit {
+	JsonValue EmptyStatementNode::DumpJson() const {
+		return JsonObject().
+			SetField(u8"class", u8"EmptyStatementNode").
+			Build();
+	}
+}
+
+namespace chit {
+	ExpressionStatementNode::ExpressionStatementNode(
+		std::unique_ptr<ExpressionNode> expression) noexcept
+
+		: Expression(std::move(expression)) {
+
+		assert(Expression);
+	}
+
+	JsonValue ExpressionStatementNode::DumpJson() const {
+		return JsonObject().
+			SetField(u8"class", u8"ExpressionStatementNode").
+			SetField(u8"expression", Expression->DumpJson()).
+			Build();
+	}
+}
+
+namespace chit {
 	ReturnNode::ReturnNode(std::unique_ptr<ExpressionNode> expression) noexcept
 		: Expression(std::move(expression)) {
 

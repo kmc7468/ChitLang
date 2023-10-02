@@ -5,6 +5,22 @@
 #include <cassert>
 
 namespace chit {
+	void EmptyStatementNode::Generate(GeneratorContext&) const {}
+}
+
+namespace chit {
+	void ExpressionStatementNode::Generate(GeneratorContext& context) const {
+		assert(context.Stream);
+
+		Expression->GenerateValue(context);
+
+		if (!Expression->Type->IsVoid()) {
+			*context.Stream << u8"pop\n";
+		}
+	}
+}
+
+namespace chit {
 	void ReturnNode::Generate(GeneratorContext& context) const {
 		assert(context.Stream);
 

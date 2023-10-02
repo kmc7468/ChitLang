@@ -37,12 +37,6 @@ namespace chit {
 
 		if (IsFunctionSymbol(Symbol)) {
 			*context.Stream << u8"call " << Name << u8'\n';
-
-			if (std::static_pointer_cast<FunctionType>(Type)->ReturnType ==
-				BuiltinType::Void) {
-
-				*context.Stream << u8"push 0\n"; // Temp value
-			}
 		} else {
 			// TODO: Error
 		}
